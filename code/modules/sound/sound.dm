@@ -131,6 +131,7 @@ var/global/list/falloff_cache = list()
 
 	var/area/listener_location
 
+	var/dist
 	var/sound/S
 	var/turf/Mloc
 	var/ourvolume
@@ -145,14 +146,13 @@ var/global/list/falloff_cache = list()
 		if (CLIENT_IGNORES_SOUND(C))
 			continue
 
-		//var/mob/M = C.mob
 		Mloc = get_turf(M)
 
-		if (!Mloc || Mloc.z != source.z)
+		if (!Mloc)
 			continue
 
 		//Hard attentuation
-		var/dist = max(GET_MANHATTAN_DIST(Mloc, source), 1)
+		dist = max(GET_MANHATTAN_DIST(Mloc, source), 1)
 		if (dist > MAX_SOUND_RANGE + extrarange)
 			continue
 
