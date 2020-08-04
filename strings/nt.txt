@@ -275,3 +275,4 @@ mopcat
 mrbruce
 eristheslackwyrm
 marknstein
+hauntmachine
