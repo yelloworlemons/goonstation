@@ -293,13 +293,15 @@ var/global/list/playersSeen = list()
 			return
 		data["reason"] = reason
 
-		var/server_nice = input(usr, "What server does the ban apply to?", "Ban") as null|anything in list("All", "Roleplay", "Main")
+		var/server_nice = input(usr, "What server does the ban apply to?", "Ban") as null|anything in list("All", "Tomato 1", "Tomato 2", "Tomato 3")
 		var/server = null
 		switch (server_nice)
-			if ("Roleplay")
-				server = "rp"
-			if ("Main")
-				server = "main"
+			if ("Tomato 1")
+				server = "streamer1"
+			if ("Tomato 2")
+				server = "streamer2"
+			if ("Tomato 3")
+				server = "streamer3"
 		data["server"] = server
 
 		var/ban_time = input(usr,"How long will the ban be?","Ban") as null|anything in list("Half-hour","One Hour","Six Hours","One Day","Half a Week","One Week","One Month","Permanent","Custom")
