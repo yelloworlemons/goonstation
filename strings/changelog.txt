@@ -1,5 +1,18 @@
 
+(t)thu aug 20 20
+(u)zjdtmkhzt
+(p)1883
+(e)⚖|balance
+(+)General Manufacturers can now produce rods directly.
 (t)wed aug 19 20
+(u)adharainspace
+(p)1876
+(e)🐛|bug
+(*)manta should be able to start/stop effectively now, instead of being broken.
+(u)adharainspace
+(p)1874
+(e)|
+(*)adds a 20 rounds played requirement to be a ghostdrone
 (u)adharainspace
 (p)1832
 (e)🆕|feature
