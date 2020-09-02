@@ -500,7 +500,7 @@
 	else
 		..()
 
-var/list/clonepod_accepted_reagents = list("blood"=0.5,"synthflesh"=1,"beff"=0.75,"pepperoni"=0.5,"meat_slurry"=1,"bloodc"=0.5)
+/obj/machinery/clonepod/var/static/list/clonepod_accepted_reagents = list("blood"=0.5,"synthflesh"=1,"beff"=0.75,"pepperoni"=0.5,"meat_slurry"=1,"bloodc"=0.5)
 /obj/machinery/clonepod/on_reagent_change()
 	for(var/reagent_id in src.reagents.reagent_list)
 		if (reagent_id in clonepod_accepted_reagents)
@@ -732,7 +732,7 @@ var/list/clonepod_accepted_reagents = list("blood"=0.5,"synthflesh"=1,"beff"=0.7
 		if (!src.emagged)
 			if (user)
 				boutput(user, "<span class='notice'>You override the reclaimer's safety mechanism.</span>")
-			logTheThing("combat", user, "emagged [src] at [log_loc(src)].")
+			logTheThing("combat", user, null, "emagged [src] at [log_loc(src)].")
 			emagged = 1
 			return 1
 		else
