@@ -7,7 +7,7 @@
 
 //everything here is wip, this can also be ascertained by the location of this file
 
-/////////////////////// Greek Adventurezone Thingy
+/////////////////////// Greek Adventurezone Thing
 
 /turf/unsimulated/greek/
 	name = "Greek Adventurezone Sprites"
