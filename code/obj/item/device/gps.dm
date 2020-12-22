@@ -9,7 +9,7 @@
 	var/distress = 0
 	var/active = 0		//probably should
 	var/atom/tracking_target = null		//unafilliated with allowtrack, which essentially just lets your gps appear on other gps lists
-	flags = FPRINT | TABLEPASS | CONDUCT
+	flags = FPRINT | TABLEPASS | CONDUCT | TGUI_INTERACTIVE
 	w_class = 2.0
 	m_amt = 50
 	g_amt = 100
@@ -19,28 +19,53 @@
 	var/net_id
 	var/datum/radio_frequency/radio_control
 
-	proc/get_z_info(var/turf/T)
-		. =  "Landmark: Unknown"
-		if (!T)
-			return
-		if (!istype(T))
-			T = get_turf(T)
-		if (!T)
-			return
-		if (T.z == 1)
-			. = "Landmark: [capitalize(station_or_ship())]"
-/*			if (ismap("DESTINY"))
-				. =  "Landmark: NSS Destiny"
-			else if (ismap("CLARION"))
-				. =  "Landmark: NSS Clarion"
-			else
-				. =  "Landmark: Station"
-*/
-		else if (T.z == 2)
-			. =  "Landmark: Restricted"
-		else if (T.z == 3)
-			. =  "Landmark: Debris Field"
+/* INTERFACE */
+
+/obj/item/device/gps/ui_interact(mob/user, datum/tgui/ui)
+	ui = tgui_process.try_update_ui(user, src, ui)
+	if (!ui)
+		ui = new(user, src, "SlotMachine", name)
+		ui.open()
+
+/obj/item/device/gps/ui_data(mob/user)
+	. = list(
+		"busy" = working,
+		"scannedCard" = src.scan,
+		"money" = src.scan?.money,
+		"plays" = plays,
+	)
+
+/obj/item/device/gps/ui_state(mob/user)
+	return tgui_physical_state
+
+/obj/item/device/gps/ui_status(mob/user)
+  return min(
+		tgui_physical_state.can_use_topic(src, user),
+		tgui_not_incapacitated_state.can_use_topic(src, user)
+	)
+
+/obj/item/device/gps/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
+	. = ..()
+	if (.)
 		return
+	switch(action)
+		if ("insert_card")
+
+/obj/item/device/gps/proc/get_z_info(var/turf/T)
+	. =  "Landmark: Unknown"
+	if (!T)
+		return
+	if (!istype(T))
+		T = get_turf(T)
+	if (!T)
+		return
+	if (T.z == 1)
+		. = "Landmark: [capitalize(station_or_ship())]"
+	else if (T.z == 2)
+		. =  "Landmark: Restricted"
+	else if (T.z == 3)
+		. =  "Landmark: Debris Field"
+	return
 
 	proc/show_HTML(var/mob/user)
 		if (!user)
@@ -130,210 +155,216 @@
 		user.Browse(HTML, "window=gps_[src];title=GPS;size=400x540;override_setting=1")
 		onclose(user, "gps")
 
-	attack_self(mob/user as mob)
-		if ((user.contents.Find(src) || user.contents.Find(src.master) || get_dist(src, user) <= 1))
-			src.show_HTML(user)
-		else
-			user.Browse(null, "window=gps_[src]")
-			src.remove_dialog(user)
-		return
-
-	Topic(href, href_list)
-		..()
-		if (usr.stat || usr.restrained() || usr.lying)
-			return
-		if ((usr.contents.Find(src) || usr.contents.Find(src.master) || in_range(src, usr)))
-			src.add_dialog(usr)
-			var/turf/T = get_turf(usr)
-			if(href_list["getcords"])
-				boutput(usr, "<span class='notice'>Located at: <b>X</b>: [T.x], <b>Y</b>: [T.y]</span>")
+/obj/item/device/gps/attack_self(mob/user as mob)
+				if ((user.contents.Find(src) || user.contents.Find(src.master) || get_dist(src, user) <= 1))
+					src.show_HTML(user)
+				else
+					user.Browse(null, "window=gps_[src]")
+					src.remove_dialog(user)
 				return
 
-			if(href_list["track1"])
-				boutput(usr, "<span class='notice'>Tracking enabled.</span>")
-				src.allowtrack = 1
-			if(href_list["track2"])
-				boutput(usr, "<span class='notice'>Tracking disabled.</span>")
-				src.allowtrack = 0
-			if(href_list["changeid"])
-				var/t = strip_html(input(usr, "Enter new GPS identification name (must be 4 characters)", src.identifier) as text)
-				if(length(t) > 4)
-					boutput(usr, "<span class='alert'>Input too long.</span>")
-					return
-				if(length(t) < 4)
-					boutput(usr, "<span class='alert'>Input too short.</span>")
-					return
-				if(!t)
-					return
-				src.identifier = t
-			if(href_list["help"])
-				if(!distress)
-					boutput(usr, "<span class='alert'>Sending distress signal.</span>")
-					distress = 1
-					src.send_distress_signal(distress)
-				else
-					distress = 0
-					boutput(usr, "<span class='alert'>Distress signal cleared.</span>")
-					src.send_distress_signal(distress)
-			if(href_list["refresh"])
+/obj/item/device/gps/Topic(href, href_list)
 				..()
+				if (usr.stat || usr.restrained() || usr.lying)
+					return
+				if ((usr.contents.Find(src) || usr.contents.Find(src.master) || in_range(src, usr)))
+					src.add_dialog(usr)
+					var/turf/T = get_turf(usr)
+					if(href_list["getcords"])
+						boutput(usr, "<span class='notice'>Located at: <b>X</b>: [T.x], <b>Y</b>: [T.y]</span>")
+						return
 
-			if(href_list["dest_cords"])
-				obtain_target_from_coords(href_list)
-			if(href_list["stop_tracking"])
-				tracking_target = null
-				active = null
-				icon_state = "gps-off"
+					if(href_list["track1"])
+						boutput(usr, "<span class='notice'>Tracking enabled.</span>")
+						src.allowtrack = 1
+					if(href_list["track2"])
+						boutput(usr, "<span class='notice'>Tracking disabled.</span>")
+						src.allowtrack = 0
+					if(href_list["changeid"])
+						var/t = strip_html(input(usr, "Enter new GPS identification name (must be 4 characters)", src.identifier) as text)
+						if(length(t) > 4)
+							boutput(usr, "<span class='alert'>Input too long.</span>")
+							return
+						if(length(t) < 4)
+							boutput(usr, "<span class='alert'>Input too short.</span>")
+							return
+						if(!t)
+							return
+						src.identifier = t
+					if(href_list["help"])
+						if(!distress)
+							boutput(usr, "<span class='alert'>Sending distress signal.</span>")
+							distress = 1
+							src.send_distress_signal(distress)
+						else
+							distress = 0
+							boutput(usr, "<span class='alert'>Distress signal cleared.</span>")
+							src.send_distress_signal(distress)
+					if(href_list["refresh"])
+						..()
+
+					if(href_list["dest_cords"])
+						obtain_target_from_coords(href_list)
+					if(href_list["stop_tracking"])
+						tracking_target = null
+						active = null
+						icon_state = "gps-off"
 
 
-			if (!src.master)
-				src.updateSelfDialog()
-			else
-				src.master.updateSelfDialog()
+					if (!src.master)
+						src.updateSelfDialog()
+					else
+						src.master.updateSelfDialog()
 
-			src.add_fingerprint(usr)
-		else
-			usr.Browse(null, "window=gps_[src]")
-			return
-		return
+					src.add_fingerprint(usr)
+				else
+					usr.Browse(null, "window=gps_[src]")
+					return
+				return
 
 
-	New()
-		..()
-		serial = rand(4201,7999)
-		START_TRACKING
-		if (radio_controller)
-			src.net_id = generate_net_id(src)
-			radio_control = radio_controller.add_object(src, "[frequency]")
+/obj/item/device/gps/New()
+	..()
+	serial = rand(4201,7999)
+	START_TRACKING
+	if (radio_controller)
+		src.net_id = generate_net_id(src)
+		radio_control = radio_controller.add_object(src, "[frequency]")
 
-	get_desc(dist, mob/user)
-		. = "<br>Its serial code is [src.serial]-[identifier]."
-		if (dist > 2)
-			return
+/obj/item/device/gps/get_desc(dist, mob/user)
+	. = "<br>Its serial code is [src.serial]-[identifier]."
+	if (dist < 2)
 		. += "<br>There's a sticker on the back saying \"Net Identifier: [net_id]\" on it."
 
-	proc/obtain_target_from_coords(href_list)
-		if (href_list["dest_cords"])
-			tracking_target = null
-			var/x = text2num(href_list["x"])
-			var/y = text2num(href_list["y"])
-			if (!x || !y)
-				boutput(usr, "<span class='alert'>Bad Topc call, if you see this something has gone wrong. And it's probably YOUR FAULT!</span>")
-				return
-			// This is to get a turf with the specified coordinates on the same Z as the device
-			var/turf/T = get_turf(src) //bugfix for this not working when src was in containers
-			var/z = T.z
+/obj/item/device/gps/proc/obtain_target_from_coords(href_list)
+	if (href_list["dest_cords"])
+		tracking_target = null
+		var/x = text2num(href_list["x"])
+		var/y = text2num(href_list["y"])
+		if (!x || !y)
+			boutput(usr, "<span class='alert'>Bad Topc call, if you see this something has gone wrong. And it's probably YOUR FAULT!</span>")
+			return
+		// This is to get a turf with the specified coordinates on the same Z as the device
+		var/turf/T = get_turf(src) //bugfix for this not working when src was in containers
+		var/z = T.z
 
 
-			T = locate(x,y,z)
-			//Set located turf to be the tracking_target
-			if (isturf(T))
-				src.tracking_target = T
-				boutput(usr, "<span class='notice'>Now tracking: <b>X</b>: [T.x], <b>Y</b>: [T.y]</span>")
+		T = locate(x,y,z)
+		//Set located turf to be the tracking_target
+		if (isturf(T))
+			src.tracking_target = T
+			boutput(usr, "<span class='notice'>Now tracking: <b>X</b>: [T.x], <b>Y</b>: [T.y]</span>")
 
-				begin_tracking()
-			else
-				boutput(usr, "<span class='alert'>Invalid GPS coordinates.</span>")
-		sleep(1 SECOND)
+			begin_tracking()
+		else
+			boutput(usr, "<span class='alert'>Invalid GPS coordinates.</span>")
 
-	proc/begin_tracking()
-		if(!active)
-			if (!src.tracking_target)
-				usr.show_text("No target specified, cannot activate the pinpointer.", "red")
-				return
-			active = 1
-			process()
-			boutput(usr, "<span class='notice'>You activate the gps</span>")
+/obj/item/device/gps/proc/begin_tracking()
+	if(!active)
+		if (!src.tracking_target)
+			usr.show_text("No target specified, cannot activate the pinpointer.", "red")
+			return
+		active = 1
+		process()
+		boutput(usr, "<span class='notice'>You activate the gps</span>")
 
-	proc/send_distress_signal(distress)
-		var/distressAlert = distress ? "help" : "clear"
-		var/turf/T = get_turf(usr)
+/obj/item/device/gps/proc/send_distress_signal(distress)
+	var/distressAlert = distress ? "help" : "clear"
+	var/turf/T = get_turf(usr)
+	var/datum/signal/reply = get_free_signal()
+	reply.source = src
+	reply.data["sender"] = src.net_id
+	reply.data["identifier"] = "[src.serial]-[src.identifier]"
+	reply.data["coords"] = "[T.x],[T.y]"
+	reply.data["location"] = "[src.get_z_info(T)]"
+	reply.data["distress_alert"] = "[distressAlert]"
+	radio_control.post_signal(src, reply)
+
+/obj/item/device/gps/process()
+	if(!active || !tracking_target)
+		active = 0
+		icon_state = "gps-off"
+		return
+
+	src.set_dir(get_dir(src,tracking_target))
+	if (get_dist(src,tracking_target) == 0)
+		icon_state = "gps-direct"
+	else
+		icon_state = "gps"
+
+	SPAWN_DBG(0.5 SECONDS) .()
+
+/obj/item/device/gps/disposing()
+	STOP_TRACKING
+	if (radio_controller)
+		radio_controller.remove_object(src, "[src.frequency]")
+	..()
+
+/obj/item/device/gps/receive_signal(datum/signal/signal)
+	if(!signal || signal.encryption)
+		return
+
+	var/sender = signal.data["sender"]
+
+	if (lowertext(signal.data["distress_alert"]))
+		var/senderName = signal.data["identifier"]
+		if (!senderName)
+			return
+		if (lowertext(signal.data["distress_alert"] == "help"))
+			src.visible_message("<b>[bicon(src)] [src]</b> beeps, \"NOTICE: Distress signal recieved from GPS [senderName].\".")
+		else if (lowertext(signal.data["distress_alert"] == "clear"))
+			src.visible_message("<b>[bicon(src)] [src]</b> beeps, \"NOTICE: Distress signal cleared by GPS [senderName].\".")
+		return
+	else if (!signal.data["sender"])
+		return
+	else if (signal.data["address_1"] == src.net_id && src.allowtrack)
 		var/datum/signal/reply = get_free_signal()
 		reply.source = src
 		reply.data["sender"] = src.net_id
-		reply.data["identifier"] = "[src.serial]-[src.identifier]"
-		reply.data["coords"] = "[T.x],[T.y]"
-		reply.data["location"] = "[src.get_z_info(T)]"
-		reply.data["distress_alert"] = "[distressAlert]"
+		reply.data["address_1"] = sender
+		switch (lowertext(signal.data["command"]))
+			if ("help")
+				if (!signal.data["topic"])
+					reply.data["description"] = "GPS unit - Provides space-coordinates and transmits distress signals"
+					reply.data["topics"] = "status"
+				else
+					reply.data["topic"] = signal.data["topic"]
+					switch (lowertext(signal.data["topic"]))
+						if ("status")
+							reply.data["description"] = "Returns the status of the GPS unit, including identifier, coords, location, and distress status. Does not require any arguments"
+						else
+							reply.data["topic"] = signal.data["topic"]
+							reply.data["description"] = "ERROR: UNKNOWN TOPIC"
+			if ("status")
+				var/turf/T = get_turf(src)
+				reply.data["identifier"] = "[src.serial]-[src.identifier]"
+				reply.data["coords"] = "[T.x],[T.y]"
+				reply.data["location"] = "[src.get_z_info(T)]"
+				reply.data["distress"] = "[src.distress]"
+			else
+				return //COMMAND NOT RECOGNIZED
 		radio_control.post_signal(src, reply)
 
-	process()
-		if(!active || !tracking_target)
-			active = 0
-			icon_state = "gps-off"
-			return
+	else if (lowertext(signal.data["address_1"]) == "ping" && src.allowtrack)
+		var/datum/signal/pingsignal = get_free_signal()
+		pingsignal.source = src
+		pingsignal.data["device"] = "WNET_GPS"
+		pingsignal.data["netid"] = src.net_id
+		pingsignal.data["address_1"] = sender
+		pingsignal.data["command"] = "ping_reply"
+		pingsignal.data["data"] = "[src.serial]-[src.identifier]"
+		pingsignal.data["distress"] = "[src.distress]"
+		pingsignal.transmission_method = TRANSMISSION_RADIO
 
-		src.set_dir(get_dir(src,tracking_target))
-		if (get_dist(src,tracking_target) == 0)
-			icon_state = "gps-direct"
-		else
-			icon_state = "gps"
+		radio_control.post_signal(src, pingsignal)
 
-		SPAWN_DBG(0.5 SECONDS) .()
 
-	disposing()
-		STOP_TRACKING
-		if (radio_controller)
-			radio_controller.remove_object(src, "[src.frequency]")
-		..()
 
-	receive_signal(datum/signal/signal)
-		if(!signal || signal.encryption)
-			return
 
-		var/sender = signal.data["sender"]
 
-		if (lowertext(signal.data["distress_alert"]))
-			var/senderName = signal.data["identifier"]
-			if (!senderName)
-				return
-			if (lowertext(signal.data["distress_alert"] == "help"))
-				src.visible_message("<b>[bicon(src)] [src]</b> beeps, \"NOTICE: Distress signal recieved from GPS [senderName].\".")
-			else if (lowertext(signal.data["distress_alert"] == "clear"))
-				src.visible_message("<b>[bicon(src)] [src]</b> beeps, \"NOTICE: Distress signal cleared by GPS [senderName].\".")
-			return
-		else if (!signal.data["sender"])
-			return
-		else if (signal.data["address_1"] == src.net_id && src.allowtrack)
-			var/datum/signal/reply = get_free_signal()
-			reply.source = src
-			reply.data["sender"] = src.net_id
-			reply.data["address_1"] = sender
-			switch (lowertext(signal.data["command"]))
-				if ("help")
-					if (!signal.data["topic"])
-						reply.data["description"] = "GPS unit - Provides space-coordinates and transmits distress signals"
-						reply.data["topics"] = "status"
-					else
-						reply.data["topic"] = signal.data["topic"]
-						switch (lowertext(signal.data["topic"]))
-							if ("status")
-								reply.data["description"] = "Returns the status of the GPS unit, including identifier, coords, location, and distress status. Does not require any arguments"
-							else
-								reply.data["topic"] = signal.data["topic"]
-								reply.data["description"] = "ERROR: UNKNOWN TOPIC"
-				if ("status")
-					var/turf/T = get_turf(src)
-					reply.data["identifier"] = "[src.serial]-[src.identifier]"
-					reply.data["coords"] = "[T.x],[T.y]"
-					reply.data["location"] = "[src.get_z_info(T)]"
-					reply.data["distress"] = "[src.distress]"
-				else
-					return //COMMAND NOT RECOGNIZED
-			radio_control.post_signal(src, reply)
 
-		else if (lowertext(signal.data["address_1"]) == "ping" && src.allowtrack)
-			var/datum/signal/pingsignal = get_free_signal()
-			pingsignal.source = src
-			pingsignal.data["device"] = "WNET_GPS"
-			pingsignal.data["netid"] = src.net_id
-			pingsignal.data["address_1"] = sender
-			pingsignal.data["command"] = "ping_reply"
-			pingsignal.data["data"] = "[src.serial]-[src.identifier]"
-			pingsignal.data["distress"] = "[src.distress]"
-			pingsignal.transmission_method = TRANSMISSION_RADIO
 
-			radio_control.post_signal(src, pingsignal)
+
 
 // coordinate beacons. pretty useless but whatever you never know
 
