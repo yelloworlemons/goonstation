@@ -2011,7 +2011,7 @@
 /area/station/engine/inner)
 "ajc" = (
 /obj/table/reinforced/bar/auto,
-/obj/item/card_box/suit{
+/obj/item/card_box/plain{
 	pixel_x = -5
 	},
 /obj/disposalpipe/segment/transport,
@@ -9099,7 +9099,7 @@
 "cou" = (
 /obj/decal/cleanable/dirt/jen,
 /obj/decal/cleanable/rust/jen,
-/obj/reagent_dispensers/ants,
+/obj/reagent_dispensers/cleanable/ants,
 /obj/item/plate{
 	pixel_y = -1
 	},
@@ -10147,7 +10147,9 @@
 /turf/simulated/floor/sanitary/blue,
 /area/station/crew_quarters/captain)
 "cEO" = (
-/obj/displaycase,
+/obj/displaycase{
+	displayed = new /obj/item/captaingun
+},
 /obj/machinery/light/incandescent/greenish{
 	dir = 1
 	},
@@ -11869,7 +11871,7 @@
 "dec" = (
 /obj/table/wood/auto,
 /obj/item/tvdinner,
-/obj/item/reagent_containers/food/snacks/donut/cinnamon{
+/obj/item/reagent_containers/food/snacks/donut/custom/cinnamon{
 	desc = "This donut has seen some shit.";
 	name = "mentally scarred donut";
 	pixel_y = 15
@@ -15982,11 +15984,10 @@
 	dir = 1;
 	layer = 4
 	},
-/obj/railing/orange{
-	layer = 4
-	},
 /obj/decal/cleanable/dirt/jen,
 /obj/disposalpipe/segment,
+/obj/storage/cart/trash,
+/obj/decal/mule/beacon/no_auto_dropoff_spawn,
 /turf/simulated/floor/plating/jen,
 /area/station/maintenance/inner/nw)
 "erY" = (
@@ -24066,7 +24067,7 @@
 	pixel_x = 5;
 	pixel_y = 2
 	},
-/obj/item/postit_stack{
+/obj/item/item_box/postit{
 	pixel_x = -6;
 	pixel_y = 4
 	},
@@ -25046,7 +25047,8 @@
 /area/station/hangar/main)
 "hao" = (
 /obj/disposalpipe/segment/transport,
-/turf/simulated/wall/auto/jen,
+/obj/wingrille_spawn/auto/tuff,
+/turf/simulated/floor/plating,
 /area/station/janitor/office)
 "hat" = (
 /obj/cable{
@@ -32733,7 +32735,7 @@
 /area/station/crew_quarters/heads)
 "jsA" = (
 /obj/table/glass/reinforced/auto,
-/obj/item/card_box/suit,
+/obj/item/card_box/plain,
 /turf/simulated/floor/carpet,
 /area/station/hallway/secondary/exit)
 "jsD" = (
@@ -40689,7 +40691,7 @@
 /turf/simulated/floor/plating/jen,
 /area/station/maintenance/outer/nw)
 "lNT" = (
-/obj/machinery/computer/barcode/qm/donut3{
+/obj/machinery/computer/barcode/qm/no_belthell{
 	dir = 4
 	},
 /turf/simulated/floor/yellow,
@@ -54667,11 +54669,9 @@
 /obj/railing/orange{
 	dir = 1
 	},
-/obj/railing/orange{
-	layer = 4
-	},
 /obj/decal/cleanable/dirt/jen,
-/obj/random_item_spawner/junk/one_or_zero,
+/obj/storage/cart/trash,
+/obj/decal/mule/beacon/no_auto_dropoff_spawn,
 /turf/simulated/floor/plating/jen,
 /area/station/maintenance/inner/nw)
 "pSs" = (
@@ -76970,7 +76970,7 @@
 /turf/unsimulated/floor/shuttle,
 /area/shuttle/arrival/station)
 "wmX" = (
-/obj/storage/crate/rcd,
+/obj/storage/crate/rcd/CE,
 /obj/cable{
 	d1 = 1;
 	d2 = 8;
@@ -82805,7 +82805,7 @@
 	pixel_x = -3;
 	pixel_y = -2
 	},
-/obj/item/reagent_containers/food/snacks/donut/frosted{
+/obj/item/reagent_containers/food/snacks/donut/custom/frosted{
 	pixel_x = 3;
 	pixel_y = 3
 	},
@@ -119263,7 +119263,7 @@ jyv
 tJK
 nBj
 brP
-mmy
+wEG
 wbM
 vxt
 edK
@@ -119867,7 +119867,7 @@ mRC
 tJK
 nBj
 etc
-wEG
+mSM
 cYk
 wax
 ogT
@@ -121072,7 +121072,7 @@ qCT
 qCT
 geL
 gba
-pSq
+suy
 nln
 kwi
 osx

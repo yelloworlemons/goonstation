@@ -462,7 +462,7 @@
 		return
 	var/input2 = input(usr, "Add a headline for this alert?", "What?", "") as null|text
 /*
-	for (var/obj/machinery/computer/communications/C as() in machine_registry[MACHINES_COMMSCONSOLES])
+	for (var/obj/machinery/computer/communications/C as anything in machine_registry[MACHINES_COMMSCONSOLES])
 		if(! (C.status & (BROKEN|NOPOWER) ) )
 			var/obj/item/paper/P = new /obj/item/paper( C.loc )
 			P.name = "paper- '[command_name()] Update.'"
@@ -607,8 +607,7 @@
 			T.air.oxygen = MOLES_O2STANDARD
 			T.air.nitrogen = MOLES_N2STANDARD
 			T.air.fuel_burnt = 0
-			if(T.air.trace_gases)
-				T.air.trace_gases = null
+			T.air.clear_trace_gases()
 			T.air.temperature = T20C
 			LAGCHECK(LAG_LOW)
 
@@ -1710,6 +1709,7 @@
 
 	// Replace the mind first, so the new mob doesn't automatically end up with changeling etc. abilities.
 	var/datum/mind/newMind = new /datum/mind()
+	newMind.ckey = M.ckey
 	newMind.key = M.key
 	newMind.current = M
 	newMind.assigned_role = M.mind.assigned_role
@@ -2311,7 +2311,8 @@ var/global/night_mode_enabled = 0
 			//R.set_dir(direction)
 			R.name = "robust shamecube glass"
 			R.desc = "A pane of robust, yet shameful, glass."
-		var/turf/void = new/turf/unsimulated/floor/void(get_step(targetLoc, direction))
+		var/turf/orig = get_step(targetLoc, direction)
+		var/turf/void = orig.ReplaceWith(/turf/unsimulated/floor/void, FALSE, TRUE, FALSE, TRUE)
 		void.name = "shameful void"
 		void.desc = "really is just a shame"
 		new/area/shamecube(get_step(targetLoc, direction))
@@ -2549,7 +2550,7 @@ var/global/night_mode_enabled = 0
 		//search all offices for an office with the same ckey variable as the usr.
 		if (office.ckey == src.ckey)
 			var/list/turfs = get_area_turfs(office.type)
-			if (islist(turfs) && turfs.len)
+			if (islist(turfs) && length(turfs))
 
 				for (var/turf/T in turfs)
 					//search all turfs for a chair if we can't find one, put em anywhere (might make personalized chairs in the future...)
@@ -2617,6 +2618,8 @@ var/global/mirrored_physical_zone_created = FALSE //enables secondary code branc
 				if (T.vistarget)
 					T.vistarget.vis_contents -= T
 					T.vistarget.warptarget = null
+					T.vistarget.fullbright = initial(T.vistarget.fullbright)
+					T.vistarget.RL_Init()
 					T.vistarget = null
 					T.warptarget = null
 					summoning_office = FALSE
@@ -2663,4 +2666,163 @@ var/global/mirrored_physical_zone_created = FALSE //enables secondary code branc
 			if("No")
 				return
 	else
-		boutput(src, "You must be at least a Administrator to use this command.")
+		boutput(src, "You must be at least an Administrator to use this command.")
+
+/client/proc/cmd_disco_lights()
+	SET_ADMIN_CAT(ADMIN_CAT_FUN)
+	set name = "Disco Lights"
+	set desc = "Set every light on the station to a random color"
+	var/R = null
+	var/G = null
+	var/B = null
+
+	if(holder && src.holder.level >= LEVEL_ADMIN)
+		switch(alert("Set every light on the station to a random color?",,"Yes","No"))
+			if("Yes")
+				for (var/obj/machinery/light/L as anything in stationLights)
+					R = rand(100)/100
+					G = rand(100)/100
+					B = rand(100)/100
+					if ((R + G + B) < 1)
+						switch (rand(1,3))
+							if (1)
+								R = 1
+							if (2)
+								G = 1
+							if (3)
+								B = 1
+					L.light?.set_color(R, G, B)
+					LAGCHECK(LAG_LOW)
+				logTheThing("admin", src, null, "set every light on the station to a random color.")
+				logTheThing("diary", src, null, "set every light on the station to a random color.", "admin")
+				message_admins("[key_name(src)] set every light on the station to a random color.")
+	else
+		boutput(src, "You must be at least an Administrator to use this command.")
+
+/client/proc/cmd_blindfold_monkeys()
+	SET_ADMIN_CAT(ADMIN_CAT_FUN)
+	set name = "See No Evil"
+	if(holder && src.holder.level >= LEVEL_ADMIN)
+		switch(alert("Really blindfold all monkeys?",,"Yes","No"))
+			if("Yes")
+				for (var/mob/living/carbon/human/M in mobs)
+					if (!ismonkey(M))
+						continue
+					var/obj/item/clothing/glasses/G = M.glasses
+					if (G)
+						M.u_equip(G)
+						qdel(G)
+					var/obj/item/clothing/glasses/blindfold/B = new()
+					M.force_equip(B, M.slot_glasses)
+
+				logTheThing("admin", src, null, "has blindfolded every monkey.")
+				logTheThing("diary", src, null, "has blindfolded every monkey.", "admin")
+
+			if("No")
+				return
+	else
+		boutput(src, "You must be at least an Administrator to use this command.")
+
+
+/client/proc/cmd_swampify_station()
+	SET_ADMIN_CAT(ADMIN_CAT_FUN)
+	set name = "Swampify"
+	set desc = "Turns space into a swamp"
+	admin_only
+	var/const/ambient_light = "#222222"
+#ifdef UNDERWATER_MAP
+	//to prevent tremendous lag from the entire map flooding from a single ocean tile.
+	boutput(src, "You cannot use this command on underwater maps. Sorry!")
+	return
+#else
+	if(src.holder.level >= LEVEL_ADMIN)
+		switch(alert("Turn space into a swamp? This is probably going to lag a bunch when it happens and there's no easy undo!",,"Yes","No"))
+			if("Yes")
+				var/image/I = new /image/ambient
+				var/datum/map_generator/jungle_generator/map_generator = new
+				var/list/space = list()
+				for(var/turf/space/S in block(locate(1, 1, Z_LEVEL_STATION), locate(world.maxx, world.maxy, Z_LEVEL_STATION)))
+					space += S
+				map_generator.generate_terrain(space)
+				for (var/turf/S in space)
+					I.color = ambient_light
+					S.UpdateOverlays(I, "ambient")
+				logTheThing("admin", src, null, "turned space into a swamp.")
+				logTheThing("diary", src, null, "turned space into a swamp.", "admin")
+				message_admins("[key_name(src)] turned space into a swamp.")
+	else
+		boutput(src, "You must be at least an Administrator to use this command.")
+#endif
+
+/client/proc/cmd_trenchify_station()
+	SET_ADMIN_CAT(ADMIN_CAT_FUN)
+	set name = "Trenchify"
+	set desc = "Generates trench caves on the station Z"
+	admin_only
+	if(src.holder.level >= LEVEL_ADMIN)
+		switch(alert("Generate a trench on the station Z level? This is probably going to lag a bunch when it happens and there's no easy undo!",,"Yes","No"))
+			if("Yes")
+				var/hostile_mob_toggle = FALSE
+				if(alert("Include hostile mobs?",,"Yes","No")=="Yes") hostile_mob_toggle = TRUE
+
+				boutput(src, "Now generating trench, pleast wait.")
+
+				var/turf/T1 = locate(1 + AST_MAPBORDER, 1 + AST_MAPBORDER, Z_LEVEL_STATION)
+				var/turf/T2 = locate(world.maxx - AST_MAPBORDER, world.maxy - AST_MAPBORDER, Z_LEVEL_STATION)
+
+				var/datum/mapGenerator/seaCaverns/seaCaverns = new()
+				seaCaverns.generate(block(T1, T2), Z_LEVEL_STATION, FALSE)
+
+				for(var/turf/space/space_turf in block(T1, T2))
+					if (istype(space_turf.loc, /area/shuttle)) continue
+					space_turf.ReplaceWith(/turf/space/fluid/trench)
+
+					if (prob(1))
+						new /obj/item/seashell(space_turf)
+
+					if (prob(8))
+						var/obj/plant = pick(childrentypesof(/obj/sea_plant))
+						var/obj/sea_plant/P = new plant(space_turf)
+						P.initialize()
+
+					if(hostile_mob_toggle)
+						if (prob(1) && prob(2))
+							new /obj/critter/gunbot/drone/buzzdrone/fish(space_turf)
+						else if (prob(1) && prob(4))
+							new /obj/critter/gunbot/drone/gunshark(space_turf)
+						else if (prob(1) && prob(20))
+							var/mob/fish = pick(childrentypesof(/mob/living/critter/aquatic/fish))
+							new fish(space_turf)
+						else if (prob(1) && prob(9) && prob(90))
+							var/obj/naval_mine/O = 0
+							if (prob(20))
+								if (prob(70))
+									O = new /obj/naval_mine/standard(space_turf)
+								else
+									O = new /obj/naval_mine/vandalized(space_turf)
+							else
+								O = new /obj/naval_mine/rusted(space_turf)
+							if (O)
+								O.initialize()
+
+						if (prob(2) && prob(25))
+							new /obj/overlay/tile_effect/cracks/spawner/trilobite(space_turf)
+						if (prob(2) && prob(25))
+							new /obj/overlay/tile_effect/cracks/spawner/pikaia(space_turf)
+
+						if (prob(1) && prob(16))
+							new /mob/living/critter/small_animal/hallucigenia/ai_controlled(space_turf)
+						else if (prob(1) && prob(18))
+							new /obj/overlay/tile_effect/cracks/spawner/pikaia(space_turf)
+
+					if (prob(1) && prob(9))
+						var/obj/storage/crate/trench_loot/C = pick(childrentypesof(/obj/storage/crate/trench_loot))
+						var/obj/storage/crate/trench_loot/created_loot = new C(space_turf)
+						created_loot.initialize()
+
+					LAGCHECK(LAG_MED)
+				logTheThing("admin", src, null, "generated a trench on station Z[hostile_mob_toggle ? " with hostile mobs" : ""].")
+				logTheThing("diary", src, null, "generated a trench on station Z[hostile_mob_toggle ? " with hostile mobs" : ""].", "admin")
+				message_admins("[key_name(src)] generated a trench on station Z[hostile_mob_toggle ? " with hostile mobs" : ""].")
+	else
+		boutput(src, "You must be at least an Administrator to use this command.")

@@ -96,12 +96,12 @@
 
 	if (src.wear_id)
 		if (istype(src.wear_id, /obj/item/card/id))
-			if (src.wear_id:registered != src.real_name && in_range(src, usr) && prob(10))
+			if (src.wear_id:registered != src.real_name && in_interact_range(src, usr) && prob(10))
 				. += "<br><span class='alert'>[src.name] is wearing [bicon(src.wear_id)] [src.wear_id.name] yet doesn't seem to be that person!!!</span>"
 			else
 				. += "<br><span class='notice'>[src.name] is wearing [bicon(src.wear_id)] [src.wear_id.name].</span>"
 		else if (istype(src.wear_id, /obj/item/device/pda2) && src.wear_id:ID_card)
-			if (src.wear_id:ID_card:registered != src.real_name && in_range(src, usr) && prob(10))
+			if (src.wear_id:ID_card:registered != src.real_name && in_interact_range(src, usr) && prob(10))
 				. += "<br><span class='alert'>[src.name] is wearing [bicon(src.wear_id)] [src.wear_id.name] with [bicon(src.wear_id:ID_card)] [src.wear_id:ID_card:name] in it yet doesn't seem to be that person!!!</span>"
 			else
 				. += "<br><span class='notice'>[src.name] is wearing [bicon(src.wear_id)] [src.wear_id.name] with [bicon(src.wear_id:ID_card)] [src.wear_id:ID_card:name] in it.</span>"
@@ -281,7 +281,7 @@
 	if (C?.in_fakedeath)
 		changeling_fakedeath = 1
 
-	if ((isdead(src)) || changeling_fakedeath || (src.reagents.has_reagent("capulettium") && src.getStatusDuration("paralysis")) || (src.reagents.has_reagent("capulettium_plus") && src.getStatusDuration("weakened")))
+	if ((isdead(src)) || changeling_fakedeath || (src.reagents.has_reagent("capulettium") && src.getStatusDuration("paralysis")) || (src.reagents.has_reagent("capulettium_plus") && src.hasStatus("resting")))
 		if (!src.decomp_stage)
 			. += "<br><span class='alert'>[src] is limp and unresponsive, a dull lifeless look in [t_his] eyes.</span>"
 	else
@@ -305,7 +305,7 @@
 			if (src.get_brain_damage() >= 60)
 				. += "<br><span class='alert'>[src.name] has a blank expression on [his_or_her(src)] face.</span>"
 
-			if (!src.client)
+			if (!src.client && !src.ai_active)
 				. += "<br>[src.name] seems to be staring blankly into space."
 
 	switch (src.decomp_stage)
@@ -319,7 +319,7 @@
 			. += "<br><span class='alert'>[src]'s remains are completely skeletonized.</span>"
 
 	if(usr.traitHolder && (usr.traitHolder.hasTrait("observant") || istype(usr, /mob/dead/observer)))
-		if(src.traitHolder && src.traitHolder.traits.len)
+		if(src.traitHolder && length(src.traitHolder.traits))
 			. += "<br><span class='notice'>[src] has the following traits:</span>"
 			for(var/X in src.traitHolder.traits)
 				var/obj/trait/T = getTraitById(X)
@@ -347,12 +347,15 @@
 			var/obj/item/clothing/glasses/healthgoggles/G = H.glasses
 			if (G.scan_upgrade && G.health_scan)
 				. += "<br><span class='alert'>Your ProDocs analyze [src]'s vitals.</span><br>[scan_health(src, 0, 0)]"
+				scan_health_overhead(src, usr)
 			update_medical_record(src)
 		else if (H.organ_istype("left_eye", /obj/item/organ/eye/cyber/prodoc) && H.organ_istype("right_eye", /obj/item/organ/eye/cyber/prodoc)) // two prodoc eyes = scan upgrade because that's cool
 			. += "<br><span class='alert'>Your ProDocs analyze [src]'s vitals.</span><br>[scan_health(src, 0, 0)]"
+			scan_health_overhead(src, usr)
 			update_medical_record(src)
 		else if (istype(H.head, /obj/item/clothing/head/helmet/space/syndicate/specialist/medic))
 			. += "<br><span class='alert'>Your health monitor analyzes [src]'s vitals.</span><br>[scan_health(src, 0, 0)]"
+			scan_health_overhead(src, usr)
 			update_medical_record(src)
 
 	return jointext(., "")

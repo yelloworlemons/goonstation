@@ -217,7 +217,7 @@
 	Topic(href, href_list)
 		if (get_dist(src, usr) > 1 || !isliving(usr) || iswraith(usr) || isintangible(usr))
 			return
-		if (usr.getStatusDuration("stunned") > 0 || usr.getStatusDuration("weakened") || usr.getStatusDuration("paralysis") > 0 || !isalive(usr) || usr.restrained())
+		if (is_incapacitated(usr) || usr.restrained())
 			return
 
 		if(href_list["ops"])
@@ -335,7 +335,7 @@
 	Topic(href, href_list)
 		if (get_dist(src, usr) > 1 || !isliving(usr) || iswraith(usr) || isintangible(usr))
 			return
-		if (usr.getStatusDuration("stunned") > 0 || usr.getStatusDuration("weakened") || usr.getStatusDuration("paralysis") > 0 || !isalive(usr) || usr.restrained())
+		if (is_incapacitated(usr) || usr.restrained())
 			return
 
 		if(href_list["ops"])
@@ -428,7 +428,7 @@
 	Topic(href, href_list)
 		if (get_dist(src, usr) > 1 || !isliving(usr) || iswraith(usr) || isintangible(usr))
 			return
-		if (usr.getStatusDuration("stunned") > 0 || usr.getStatusDuration("weakened") || usr.getStatusDuration("paralysis") > 0 || !isalive(usr) || usr.restrained())
+		if (is_incapacitated(usr) || usr.restrained())
 			return
 
 		if(href_list["ops"])
@@ -462,7 +462,7 @@
 						//src.money = 0
 					else if (roll > 1 && roll <= 5)
 						for(var/mob/O in hearers(src, null))
-							O.show_message(text("<span class='subtle'><b>[]</b> says, 'Big Winner! You have has won a hundred thousand credits!'</span>", src), 1)
+							O.show_message(text("<span class='subtle'><b>[]</b> says, 'Big Winner! You have won a hundred thousand credits!'</span>", src), 1)
 						playsound(src.loc, "sound/misc/klaxon.ogg", 55, 1)
 						src.play_money += 100000
 						//src.money -= 100000

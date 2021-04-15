@@ -214,7 +214,7 @@ var/global/list/chestitem_whitelist = list(/obj/item/gnomechompski, /obj/item/gn
 	if (user && user.a_intent != INTENT_HELP)
 		return 0
 
-	if (!islist(H.bandaged) || !H.bandaged.len)
+	if (!islist(H.bandaged) || !length(H.bandaged))
 		return 0
 
 	var/removing = pick(H.bandaged)
@@ -425,6 +425,13 @@ var/global/list/chestitem_whitelist = list(/obj/item/gnomechompski, /obj/item/gn
 		else if (patient.organHolder.head.scalp_op_stage <= 4.0)
 			if (patient.organHolder.head.scalp_op_stage == 0.0)
 				playsound(get_turf(patient), "sound/impact_sounds/Slimy_Cut_1.ogg", 50, 1)
+
+				var/removing_eye = (patient.organHolder.left_eye && patient.organHolder.left_eye.op_stage == 1.0) || (patient.organHolder.right_eye && patient.organHolder.right_eye.op_stage == 1.0)
+
+				if (removing_eye && (surgeon.find_in_hand(src, "left") || surgeon.find_in_hand(src, "right")))
+					surgeon.show_text("Wait, which eye was I operating on?")
+				else if (removing_eye && surgeon.find_in_hand(src, "middle"))
+					surgeon.show_text("Hey, there's no middle eye!")
 
 				if (prob(screw_up_prob))
 					surgeon.visible_message("<span class='alert'><b>[surgeon][fluff]!</b></span>")
@@ -650,12 +657,14 @@ var/global/list/chestitem_whitelist = list(/obj/item/gnomechompski, /obj/item/gn
 				surgeon, "<span class='alert'>You cut out an implant from [surgeon == patient ? "yourself" : "[patient]"] with [src]!</span>",\
 				patient, "<span class='alert'>[patient == surgeon ? "You cut" : "<b>[surgeon]</b> cuts"] out an implant from you with [src]!</span>")
 
-				var/obj/item/implantcase/newcase = new /obj/item/implantcase(patient.loc)
-				newcase.imp = I
+				var/obj/item/implantcase/newcase = new /obj/item/implantcase(patient.loc, usedimplant = I)
 				I.on_remove(patient)
 				patient.implant.Remove(I)
-				I.set_loc(newcase)
-				newcase.icon_state = "implantcase-b"
+				var/image/wadblood = image('icons/obj/surgery.dmi', icon_state = "implantpaper-blood")
+				wadblood.color = patient.blood_color
+				newcase.UpdateOverlays(wadblood, "blood")
+				newcase.blood_DNA = patient.bioHolder.Uid
+				newcase.blood_type = patient.bioHolder.bloodType
 
 				return 1
 
@@ -1696,6 +1705,9 @@ var/global/list/chestitem_whitelist = list(/obj/item/gnomechompski, /obj/item/gn
 		else if (surgeon.find_in_hand(src, "left") && patient.organHolder.left_eye)
 			target_eye = patient.organHolder.left_eye
 			target_side = "left"
+		else if (surgeon.find_in_hand(src, "middle"))
+			surgeon.show_text("Hey, there's no middle eye!")
+			return 0
 		else
 			return 0
 

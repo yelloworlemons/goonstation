@@ -7,6 +7,9 @@
 
 	if (!bioHolder) bioHolder = new/datum/bioHolder( src )
 
+	if(voluntary && !src.emote_allowed)
+		return
+
 	if (src.bioHolder.HasEffect("revenant"))
 		src.visible_message("<span class='alert'>[src] makes [pick("a rude", "an eldritch", "a", "an eerie", "an otherworldly", "a netherly", "a spooky")] gesture!</span>", group = "revenant_emote")
 		return
@@ -35,18 +38,32 @@
 	var/maptext_out = 0
 	var/message = null
 	if (src.mutantrace)
-		message = src.mutantrace.emote(act, voluntary)
+		var/list/mutantrace_emote_stuff = src.mutantrace.emote(act, voluntary)
+		if(!islist(mutantrace_emote_stuff))
+			message = mutantrace_emote_stuff
+		else
+			if(length(mutantrace_emote_stuff) >= 1)
+				message = mutantrace_emote_stuff[1]
+			if(length(mutantrace_emote_stuff) >= 2)
+				maptext_out = mutantrace_emote_stuff[2]
 	if (!message)
 		switch (lowertext(act))
 			// most commonly used emotes first for minor performance improvements
 			if ("scream")
 				if (src.emote_check(voluntary, 50))
-					if (!muzzled)
+					if(src.bioHolder?.HasEffect("mute"))
+						var/pre_message = "[pick("vibrates for a moment, then stops", "opens [his_or_her(src)] mouth incredibly wide, but no sound comes out",
+						"really wants to be noticed", "emits an audible silence","lets forth the silent echoes of an empty soul","huffs and puffs with all [his_or_her(src)] might, but can't seem to make a sound",
+						"unhinges [his_or_her(src)] maw to produce a deafening, roaring lack of any noise whatsoever","flails desperately","")]..."
+						message = "<B>[src]</B> [pre_message]"
+						maptext_out = "<i>[pre_message]</i>"
+						m_type = 1
+					else if (!muzzled)
 						message = "<B>[src]</B> [istype(src.w_uniform, /obj/item/clothing/under/gimmick/frog) ? "croaks" : "screams"]!"
 						m_type = 2
 						if (narrator_mode)
 							playsound(src.loc, 'sound/vox/scream.ogg', 80, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
-						else if (src.sound_list_scream && src.sound_list_scream.len)
+						else if (src.sound_list_scream && length(src.sound_list_scream))
 							playsound(src.loc, pick(src.sound_list_scream), 80, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
 						else
 							//if (src.gender == MALE)
@@ -114,7 +131,7 @@
 									playsound(get_turf(src), src.sound_fart, 50, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
 
 						var/fart_on_other = 0
-						for (var/atom/A as() in src.loc)
+						for (var/atom/A as anything in src.loc)
 							if (A.event_handler_flags & IS_FARTABLE)
 								if (istype(A,/mob/living))
 									var/mob/living/M = A
@@ -223,7 +240,7 @@
 								for(var/mob/living/H in mobs)
 									if (H.bioHolder && H.bioHolder.HasEffect("linkedfart")) continue
 									var/found_bible = 0
-									for (var/atom/A as() in H.loc)
+									for (var/atom/A as anything in H.loc)
 										if (A.event_handler_flags & IS_FARTABLE)
 											if (istype(A,/obj/item/storage/bible))
 												found_bible = 1
@@ -357,8 +374,10 @@
 					else
 						alert("Unable to use this emote, must be either audible or visible.")
 						return
+					phrase_log.log_phrase("emote", input)
 					message = "<B>[src]</B> [input]"
 					maptext_out = "<I>[input]</I>"
+					custom = copytext(input, 1, 10)
 
 			if ("customv")
 				if (IS_TWITCH_CONTROLLED(src)) return
@@ -367,6 +386,7 @@
 					if(!param) return
 
 				param = sanitize(html_encode(param))
+				phrase_log.log_phrase("emote", param)
 				message = "<b>[src]</b> [param]"
 				maptext_out = "<I>[param]</I>"
 				m_type = 1
@@ -378,6 +398,7 @@
 					param = input("Choose an emote to display.")
 					if(!param) return
 				param = sanitize(html_encode(param))
+				phrase_log.log_phrase("emote", param)
 				message = "<b>[src]</b> [param]"
 				maptext_out = "<I>[param]</I>"
 				m_type = 2
@@ -388,6 +409,7 @@
 				if (!param)
 					return
 				param = sanitize(html_encode(param))
+				phrase_log.log_phrase("emote", param)
 				message = "<b>[src]</b> [param]"
 				maptext_out = "<I>[param]</I>"
 				m_type = 1 // default to visible
@@ -484,7 +506,7 @@
 					src.show_text("Why would you want to do that?")
 					return
 
-				var/datum/lifeprocess/statusupdate/S = lifeprocesses[/datum/lifeprocess/breath]
+				var/datum/lifeprocess/statusupdate/S = lifeprocesses[/datum/lifeprocess/statusupdate]
 				if (S)
 					if (S.blinkstate)
 						src.show_text("You just closed your eyes, try opening them now dumbo!")
@@ -499,7 +521,7 @@
 					src.show_text("Your eyes are already open!")
 					return
 
-				var/datum/lifeprocess/statusupdate/S = lifeprocesses[/datum/lifeprocess/breath]
+				var/datum/lifeprocess/statusupdate/S = lifeprocesses[/datum/lifeprocess/statusupdate]
 				if (S)
 					if (!S.blinkstate)
 						src.show_text("Your eyes are already open, try closing them next moron!")
@@ -574,9 +596,10 @@
 						if (thing)
 							message = thing.on_spin_emote(src)
 							maptext_out = "<I>twirls [thing]</I>"
-							animate(thing, transform = turn(matrix(), 120), time = 0.7, loop = 3)
-							animate(transform = turn(matrix(), 240), time = 0.7)
-							animate(transform = null, time = 0.7)
+							var/trans = thing.transform
+							animate(thing, transform = turn(trans, 120), time = 0.7, loop = 3, flags = ANIMATION_PARALLEL)
+							animate(transform = turn(trans, 240), time = 0.7, flags = ANIMATION_PARALLEL)
+							animate(transform = trans, time = 0.7, flags = ANIMATION_PARALLEL)
 						else
 							message = "<B>[src]</B> wiggles [his_or_her(src)] fingers a bit.[prob(10) ? " Weird." : null]"
 							maptext_out = "<I>wiggles [his_or_her(src)] fingers a bit.</I>"
@@ -661,7 +684,7 @@
 				m_type = 2
 
 			if ("handpuppet")
-				message = "<b>[src]</b> throws their voice, badly, as they flap their thumb and index finger like some sort of lips.[prob(50) ? "  Perhaps they're off their meds?" : null]"
+				message = "<b>[src]</b> throws [his_or_her(src)] voice, badly, while flapping [his_or_her(src)] thumb and index finger like some sort of lips.[prob(10) ? " Admittedly, it is a pretty good impression of the [pick("captain", "head of personnel", "clown", "research director", "chief engineer", "head of security", "medical director", "AI", "chaplain", "detective")]." : null]"
 				m_type = 1
 
 			if ("smile","grin","smirk","frown","scowl","grimace","sulk","pout","blink","drool","shrug","tremble","quiver","shiver","shudder","shake","think","ponder","contemplate","grump")
@@ -755,7 +778,7 @@
 				if (!muzzled)
 					message = "<B>[src]</B> [act]s."
 					maptext_out = "<I>[act]s</I>"
-					if (src.sound_list_laugh && src.sound_list_laugh.len)
+					if (src.sound_list_laugh && length(src.sound_list_laugh))
 						playsound(src.loc, pick(src.sound_list_laugh), 80, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
 				else
 					message = "<B>[src]</B> tries to make a noise."
@@ -835,7 +858,7 @@
 				if (!src.restrained())
 					message = "<B>[src]</B> flaps [his_or_her(src)] arms!"
 					maptext_out = "<I>flaps [his_or_her(src)] arms!</I>"
-					if (src.sound_list_flap && src.sound_list_flap.len)
+					if (src.sound_list_flap && length(src.sound_list_flap))
 						playsound(src.loc, pick(src.sound_list_flap), 80, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
 				else
 					message = "<B>[src]</B> writhes!"
@@ -846,7 +869,7 @@
 				if (!src.restrained())
 					message = "<B>[src]</B> flaps [his_or_her(src)] arms ANGRILY!"
 					maptext_out = "<I>flaps [his_or_her(src)] arms ANGRILY!</I>"
-					if (src.sound_list_flap && src.sound_list_flap.len)
+					if (src.sound_list_flap && length(src.sound_list_flap))
 						playsound(src.loc, pick(src.sound_list_flap), 80, 0, 0, src.get_age_pitch(), channel=VOLUME_CHANNEL_EMOTE)
 				else
 					message = "<B>[src]</B> writhes angrily!"
@@ -979,7 +1002,7 @@
 					maptext_out = "<I>tries to stretch [his_or_her(src)] arms</I>"
 				m_type = 1
 
-				for (var/obj/item/C as() in src.get_equipped_items())
+				for (var/obj/item/C as anything in src.get_equipped_items())
 					if ((locate(/obj/item/tool/omnitool/syndicate) in C) != null)
 						var/obj/item/tool/omnitool/syndicate/O = (locate(/obj/item/tool/omnitool/syndicate) in C)
 						var/drophand = (src.hand == 0 ? slot_r_hand : slot_l_hand)
@@ -1308,7 +1331,7 @@
 				m_type = 1
 
 			if ("wink")
-				for (var/obj/item/C as() in src.get_equipped_items())
+				for (var/obj/item/C as anything in src.get_equipped_items())
 					if ((locate(/obj/item/gun/kinetic/derringer) in C) != null)
 						var/obj/item/gun/kinetic/derringer/D = (locate(/obj/item/gun/kinetic/derringer) in C)
 						var/drophand = (src.hand == 0 ? slot_r_hand : slot_l_hand)
@@ -1339,11 +1362,11 @@
 					else
 						if (iswizard(src) && prob(10))
 							message = pick("<span class='alert'><B>[src]</B> breaks out the most unreal dance move you've ever seen!</span>", "<span class='alert'><B>[src]'s</B> dance move borders on the goddamn diabolical!</span>")
-							src.say("GHET DAUN!")
+							src.say("GHEIT DAUN!")
 							animate_flash_color_fill(src,"#5C0E80", 1, 10)
 							animate_levitate(src, 1, 10)
 							SPAWN_DBG(0) // some movement to make it look cooler
-								for (var/i = 0, i < 10, i++)
+								for (var/i in 0 to 9)
 									src.set_dir(turn(src.dir, 90))
 									sleep(0.2 SECONDS)
 
@@ -1592,70 +1615,11 @@
 									M.emote("flip", 1) // make it voluntary so there's a cooldown and stuff
 									continue
 								flipped_a_guy = 1
-								if (G.state >= 1 && isturf(src.loc) && isturf(G.affecting.loc))
-									var/obj/table/tabl = locate() in src.loc.contents
-									var/turf/newloc = src.loc
-									G.affecting.set_loc(newloc)
-									if (!G.affecting.reagents.has_reagent("fliptonium"))
-										animate_spin(src, prob(50) ? "L" : "R", 1, 0)
-
-									if (!iswrestler(src) && src.traitHolder && !src.traitHolder.hasTrait("glasscannon"))
-										src.remove_stamina(STAMINA_FLIP_COST)
-										src.stamina_stun()
-
-									G.affecting.was_harmed(src)
-
-									src.emote("scream")
-									message = "<span class='alert'><B>[src] suplexes [G.affecting][tabl ? " into [tabl]" : null]!</B></span>"
-									logTheThing("combat", src, G.affecting, "suplexes [constructTarget(G.affecting,"combat")][tabl ? " into \an [tabl]" : null] [log_loc(src)]")
-									M.lastattacker = src
-									M.lastattackertime = world.time
-									combatflip = 1
-									if (iswrestler(src))
-										if (prob(50))
-											M.ex_act(3) // this is hilariously overpowered, but WHATEVER!!!
-										else
-											G.affecting.changeStatus("weakened", 5 SECONDS)
-											G.affecting.force_laydown_standup()
-											G.affecting.TakeDamage("head", 10, 0, 0, DAMAGE_BLUNT)
-										playsound(src.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)
-									else
-										src.changeStatus("weakened", 3.9 SECONDS)
-
-										if (client?.hellbanned)
-											src.changeStatus("weakened", 4 SECONDS)
-										if (G.affecting && !G.affecting.hasStatus("weakened"))
-											G.affecting.changeStatus("weakened", 4.5 SECONDS)
-
-
-										G.affecting.force_laydown_standup()
-										SPAWN_DBG(1 SECOND) //let us do that combo shit people like with throwing
-											src.force_laydown_standup()
-
-										G.affecting.TakeDamage("head", 9, 0, 0, DAMAGE_BLUNT)
-										playsound(src.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)
-									if (tabl)
-										if (istype(tabl, /obj/table/glass))
-											var/obj/table/glass/g_tabl = tabl
-											if (!g_tabl.glass_broken)
-												if ((prob(g_tabl.reinforced ? 60 : 80)) || (src.bioHolder.HasEffect("clumsy") && (!g_tabl.reinforced || prob(90))))
-													SPAWN_DBG(0)
-														g_tabl.smash()
-														src.changeStatus("weakened", 7 SECONDS)
-														random_brute_damage(src, rand(20,40))
-														take_bleeding_damage(src, src, rand(20,40))
-
-
-														G.affecting.changeStatus("weakened", 4 SECONDS)
-														random_brute_damage(G.affecting, rand(20,40))
-														take_bleeding_damage(G.affecting, src, rand(20,40))
-
-
-														G.affecting.force_laydown_standup()
-														sleep(1 SECOND) //let us do that combo shit people like with throwing
-														src.force_laydown_standup()
-
-								if (G && G.state < 1) //ZeWaka: Fix for null.state
+								var/suplex_result = src.do_suplex(G)
+								if(suplex_result)
+									combatflip |= TRUE
+									message = suplex_result
+								if(!combatflip)
 									var/turf/oldloc = src.loc
 									var/turf/newloc = G.affecting.loc
 									if(istype(oldloc) && istype(newloc))
@@ -1687,6 +1651,7 @@
 						actions.interrupt(src, INTERRUPT_ACT)
 					if (src.lying)
 						message = "<B>[src]</B> flops on the floor like a fish."
+						maptext_out = "<I>flops on the floor like a fish</I>"
 					// If there is a chest item, see if its reagents can be dumped into the body
 					if(src.chest_item != null)
 						src.chest_item_dump_reagents_on_flip()
@@ -1969,7 +1934,7 @@
 
 			if ("miranda")
 				if (src.emote_check(voluntary, 50))
-					if (src.mind && (src.mind.assigned_role in list("Captain", "Head of Personnel", "Head of Security", "Security Officer", "Detective", "Vice Officer", "Regional Director", "Inspector")))
+					if (src.mind && (src.mind.assigned_role in list("Captain", "Head of Personnel", "Head of Security", "Security Officer", "Security Assistant", "Detective", "Vice Officer", "Regional Director", "Inspector")))
 						src.recite_miranda()
 
 			if ("dab") //I'm honestly not sure how I'm ever going to code anything lower than this - Readster 23/04/19
@@ -2071,11 +2036,11 @@
 
 	//copy paste lol
 
-	if (maptext_out)
+	if (maptext_out && !ON_COOLDOWN(src, "emote maptext", 0.5 SECONDS))
 		var/image/chat_maptext/chat_text = null
 		SPAWN_DBG(0) //blind stab at a life() hang - REMOVE LATER
 			if (speechpopups && src.chat_text)
-				chat_text = make_chat_maptext(src, maptext_out, "color: [rgb(194,190,190)];" + src.speechpopupstyle, alpha = 140)
+				chat_text = make_chat_maptext(src, maptext_out, "color: #C2BEBE;" + src.speechpopupstyle, alpha = 140)
 				if(chat_text)
 					chat_text.measure(src.client)
 					for(var/image/chat_maptext/I in src.chat_text.lines)
@@ -2123,11 +2088,11 @@
 /mob/living/carbon/human/proc/expel_fart_gas(var/oxyplasmafart)
 	var/turf/T = get_turf(src)
 	var/datum/gas_mixture/gas = unpool(/datum/gas_mixture)
+	gas.vacuum()
 	if(oxyplasmafart == 1)
 		gas.toxins += 1
 	if(oxyplasmafart == 2)
 		gas.oxygen += 1
-	gas.vacuum()
 	if(src.reagents && src.reagents.get_reagent_amount("fartonium") > 6.9)
 		gas.farts = 6.9
 	else if(src.reagents && src.reagents.get_reagent_amount("egg") > 6.9)
@@ -2144,7 +2109,7 @@
 	src.remove_stamina(STAMINA_DEFAULT_FART_COST)
 
 /mob/living/carbon/human/proc/dabbify(var/mob/living/carbon/human/H)
-	if(PROC_ON_COOLDOWN(2 SECONDS))
+	if(ON_COOLDOWN(src, "dab", 2 SECONDS))
 		return
 	H.render_target = "*\ref[H]"
 	var/image/left_arm = image(null, H)
@@ -2186,3 +2151,66 @@
 		H.update_canmove()
 		H.dir_locked = FALSE
 		H.render_target = "\ref[H]"
+
+/mob/living/proc/do_suplex(obj/item/grab/G)
+	if (!(G.state >= 1 && isturf(src.loc) && isturf(G.affecting.loc)))
+		return null
+	if(!IN_RANGE(src, G.affecting, 1))
+		return null
+
+	var/obj/table/tabl = locate() in src.loc.contents
+	var/turf/newloc = src.loc
+	G.affecting.set_loc(newloc)
+	if (!G.affecting.reagents.has_reagent("fliptonium"))
+		animate_spin(src, prob(50) ? "L" : "R", 1, 0)
+
+	if (!iswrestler(src) && src.traitHolder && !src.traitHolder.hasTrait("glasscannon"))
+		src.remove_stamina(STAMINA_FLIP_COST)
+		src.stamina_stun()
+
+	G.affecting.was_harmed(src)
+
+	src.emote("scream")
+	. = "<span class='alert'><B>[src] suplexes [G.affecting][tabl ? " into [tabl]" : null]!</B></span>"
+	logTheThing("combat", src, G.affecting, "suplexes [constructTarget(G.affecting,"combat")][tabl ? " into \an [tabl]" : null] [log_loc(src)]")
+	G.affecting.lastattacker = src
+	G.affecting.lastattackertime = world.time
+	if (iswrestler(src))
+		if (prob(50))
+			G.affecting.ex_act(3) // this is hilariously overpowered, but WHATEVER!!!
+		else
+			G.affecting.changeStatus("weakened", 5 SECONDS)
+			G.affecting.force_laydown_standup()
+			G.affecting.TakeDamage("head", 10, 0, 0, DAMAGE_BLUNT)
+		playsound(src.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)
+	else
+		src.changeStatus("weakened", 3.9 SECONDS)
+
+		if (client?.hellbanned)
+			src.changeStatus("weakened", 4 SECONDS)
+		if (G.affecting && !G.affecting.hasStatus("weakened"))
+			G.affecting.changeStatus("weakened", 4.5 SECONDS)
+
+
+		G.affecting.force_laydown_standup()
+		SPAWN_DBG(1 SECOND) //let us do that combo shit people like with throwing
+			src.force_laydown_standup()
+
+		G.affecting.TakeDamage("head", 9, 0, 0, DAMAGE_BLUNT)
+		playsound(src.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)
+	if (istype(tabl, /obj/table/glass))
+		var/obj/table/glass/g_tabl = tabl
+		if (!g_tabl.glass_broken)
+			if ((prob(g_tabl.reinforced ? 60 : 80)) || (src.bioHolder.HasEffect("clumsy") && (!g_tabl.reinforced || prob(90))))
+				SPAWN_DBG(0)
+					g_tabl.smash()
+					src.changeStatus("weakened", 7 SECONDS)
+					random_brute_damage(src, rand(20,40))
+					take_bleeding_damage(src, src, rand(20,40))
+					G.affecting.changeStatus("weakened", 4 SECONDS)
+					random_brute_damage(G.affecting, rand(20,40))
+					take_bleeding_damage(G.affecting, src, rand(20,40))
+					G.affecting.force_laydown_standup()
+					sleep(1 SECOND) //let us do that combo shit people like with throwing
+					src.force_laydown_standup()
+

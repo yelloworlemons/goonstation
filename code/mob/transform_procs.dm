@@ -199,6 +199,7 @@
 			selfmob.client.mob = W
 			W.mind = new /datum/mind()
 			ticker.minds += W.mind
+			W.mind.ckey = ckey
 			W.mind.key = key
 			W.mind.current = W
 
@@ -229,6 +230,7 @@
 	//else O.cell.charge = 7500
 
 	O.gender = src.gender
+	O.bioHolder?.mobAppearance?.pronouns = src.bioHolder?.mobAppearance?.pronouns
 	O.invisibility = 0
 	O.name = "Cyborg"
 	O.real_name = "Cyborg"
@@ -241,7 +243,7 @@
 	else
 		if(src.mind)
 			src.mind.transfer_to(O)
-	O.set_loc(src.loc)
+	O.set_loc(get_turf(src.loc))
 	boutput(O, "<B>You are playing as a Cyborg. Cyborgs can interact with most electronic objects in its view point.</B>")
 	boutput(O, "<B>You must follow all laws that the AI has.</B>")
 	boutput(O, "Use \"say :s (message)\" to speak to fellow cyborgs and the AI through binary.")
@@ -401,7 +403,7 @@
 		else
 			message_admins("[key_name(usr)] made [key_name(src)] a macho man.")
 			logTheThing("admin", usr, src, "made [constructTarget(src,"admin")] a macho man.")
-		var/mob/living/carbon/human/machoman/W = new/mob/living/carbon/human/machoman(src)
+		var/mob/living/carbon/human/machoman/W = new/mob/living/carbon/human/machoman(src, shitty)
 
 		var/turf/T = get_turf(src)
 		if (!(T && isturf(T)) || (isrestrictedz(T.z) && !(src.client && src.client.holder)))
@@ -428,6 +430,7 @@
 				src.client.mob = W
 			W.mind = new /datum/mind()
 			ticker.minds += W.mind
+			W.mind.ckey = ckey
 			W.mind.key = key
 			W.mind.current = W
 		qdel(src)
@@ -454,11 +457,11 @@
 					/mob/living/carbon/human/machoman/verb/macho_superthrow,\
 					/mob/living/carbon/human/machoman/verb/macho_soulsteal,\
 					/mob/living/carbon/human/machoman/verb/macho_stare,\
-					/mob/living/carbon/human/machoman/verb/macho_heartpunch\
-					) //they can keep macho heal
+					/mob/living/carbon/human/machoman/verb/macho_heartpunch,\
+					/mob/living/carbon/human/machoman/verb/macho_slimjim_snap) //they can keep macho heal and the arena thing
 				W.verbs -= dangerousVerbs //this is just diabolical
 				W.reagents.add_reagent("anti_fart", 800) //as is this
-			boutput(W, "<span class='notice'>You weren't able to absorb all the macho waves you were bombarded with! You have been left an incomplete macho man, with a frail body, and only one macho power. However, you inflict double damage with most melee weapons. Use your newfound form wisely to prove your worth as a macho champion of justice. Do not kill innocent crewmembers.</span>")
+				boutput(W, "<span class='notice'>You weren't able to absorb all the macho waves you were bombarded with! You have been left an incomplete macho man, with a frail body, and only one macho power. However, you inflict double damage with most melee weapons. Use your newfound form wisely to prove your worth as a macho champion of justice. Do not kill innocent crewmembers.</span>")
 
 		else
 			boutput(W, "<span class='notice'>You are now a macho man!</span>")
@@ -507,6 +510,7 @@
 			src.client.mob = W
 			W.mind = new /datum/mind()
 			ticker.minds += W.mind
+			W.mind.ckey = ckey
 			W.mind.key = key
 			W.mind.current = W
 	SPAWN_DBG(1 DECI SECOND)
@@ -930,6 +934,7 @@ var/respawn_arena_enabled = 0
 		if (src.client)
 			src.client.mob = O
 		O.mind = new /datum/mind()
+		O.mind.ckey = ckey
 		O.mind.key = key
 		O.mind.current = O
 		ticker.minds += O.mind
@@ -955,6 +960,7 @@ var/respawn_arena_enabled = 0
 			if (src.client)
 				src.client.mob = O
 			O.mind = new /datum/mind()
+			O.mind.ckey = ckey
 			O.mind.key = key
 			O.mind.current = O
 			ticker.minds += O.mind

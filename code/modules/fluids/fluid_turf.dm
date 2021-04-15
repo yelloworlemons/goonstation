@@ -36,7 +36,7 @@
 
 	special_volume_override = 0.62
 
-	turf_flags = CAN_BE_SPACE_SAMPLE | FLUID_MOVE
+	turf_flags = FLUID_MOVE
 
 	var/datum/light/point/light = 0
 	var/light_r = 0.16
@@ -262,7 +262,7 @@
 
 	proc/blow_hole()
 		if (src.z != 5)
-			new /turf/space/fluid/warp_z5/realwarp(src)
+			src.ReplaceWith(/turf/space/fluid/warp_z5/realwarp, FALSE, TRUE, FALSE, TRUE)
 
 //////////////////////duh look below
 /turf/space/fluid/warp_z5
@@ -391,29 +391,25 @@
 	name = "elevator shaft"
 	desc = "It looks like it goes down a long ways."
 	icon_state = "moon_shaft"
+	var/const/area_type = /area/shuttle/sea_elevator/upper
 
 	New()
 		..()
 
-		var/turf/n = 0
-		var/turf/e = 0
-		var/turf/w = 0
-		var/turf/s = 0
+		var/turf/n = get_step(src,NORTH)
+		var/turf/e = get_step(src,EAST)
+		var/turf/w = get_step(src,WEST)
+		var/turf/s = get_step(src,SOUTH)
 
-		n = get_step(src,NORTH)
-		if (!istype(e,/turf/simulated/floor/specialroom/sea_elevator_shaft))
-			n = 0
-		e = get_step(src,EAST)
-		if (!istype(e,/turf/simulated/floor/specialroom/sea_elevator_shaft))
-			e = 0
-		w = get_step(src,WEST)
-		if (!istype(e,/turf/simulated/floor/specialroom/sea_elevator_shaft))
-			w = 0
-		s = get_step(src,SOUTH)
-		if (!istype(e,/turf/simulated/floor/specialroom/sea_elevator_shaft))
-			s = 0
+		if (!istype(get_area(n),area_type))
+			n = null
+		if (!istype(get_area(e),area_type))
+			e = null
+		if (!istype(get_area(w),area_type))
+			w = null
+		if (!istype(get_area(s),area_type))
+			s = null
 
-		//have fun reading this! also fuck youu!
 		if (e && s)
 			set_dir(SOUTH)
 			e.set_dir(NORTH)
@@ -430,7 +426,6 @@
 			set_dir(EAST)
 			w.set_dir(WEST)
 			n.set_dir(NORTH)
-
 
 	ex_act(severity)
 		return
@@ -480,7 +475,7 @@
 /obj/machinery/computer/sea_elevator/Topic(href, href_list)
 	if(..())
 		return
-	if ((usr.contents.Find(src) || (in_range(src, usr) && istype(src.loc, /turf))) || (issilicon(usr)))
+	if (((src in usr.contents) || (in_interact_range(src, usr) && istype(src.loc, /turf))) || (issilicon(usr)))
 		src.add_dialog(usr)
 
 		if (href_list["send"])

@@ -256,6 +256,15 @@ var/global/Z4_ACTIVE = 0 //Used for mob processing purposes
 	urs
 		ckey = "ursulamajor"
 		name = "Office of UrsulaMajor"
+	varshie
+		ckey = "varshie"
+		name = "Office of Varshie"
+	virvatuli
+		ckey = "virvatuli"
+		name = "Office of Virvatuli"
+		New()
+			..()
+			overlays += image(icon = 'icons/turf/areas.dmi', icon_state = "snowverlay", layer = EFFECTS_LAYER_BASE)
 	wire
 		ckey = "wirewraith"
 		name = "Office of Wire"
@@ -287,6 +296,10 @@ var/global/Z4_ACTIVE = 0 //Used for mob processing purposes
 	name = "NT Data Center"
 	icon_state = "pink"
 
+/area/centcom/reconstitutioncenter
+	name = "NT Reconstitution Center"
+	icon_state = "purple"
+
 /area/retentioncenter
 	name = "NT Retention Center"
 	icon_state = "dk_yellow"
@@ -294,6 +307,34 @@ var/global/Z4_ACTIVE = 0 //Used for mob processing purposes
 /area/retentioncenter/depot
 	name = "NT Retention Center (depot)"
 	icon_state = "green"
+
+/area/retentioncenter/blue
+	name = "NT Retention Center (BLU)"
+	icon_state = "blue"
+
+/area/retentioncenter/green
+	name = "NT Retention Center (GRN)"
+	icon_state = "green"
+
+/area/retentioncenter/yellow
+	name = "NT Retention Center (YLW)"
+	icon_state = "yellow"
+
+/area/retentioncenter/orange
+	name = "NT Retention Center (ORG)"
+	icon_state = "orange"
+
+/area/retentioncenter/red
+	name = "NT Retention Center (RED)"
+	icon_state = "red"
+
+/area/retentioncenter/black
+	name = "NT Retention Center (BLK)"
+	icon_state = "purple"
+
+/area/retentioncenter/restricted
+	name = "NT Retention Center (Restricted)"
+	icon_state = "death"
 
 /area/retentioncenter/disposals
 	name = "NT Retention Center (disposals)"

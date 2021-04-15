@@ -30,6 +30,10 @@
 			name = "small pistol magazine pouch"
 			spawn_contents = list(/obj/item/ammo/bullets/bullet_9mm = 2)
 
+		smg
+			name = "smg magazine pouch"
+			spawn_contents = list(/obj/item/ammo/bullets/bullet_9mm/smg = 5)
+
 	tranq_pistol_dart
 		name = "tranq pistol dart pouch"
 		icon_state = "ammopouch-double"
@@ -129,9 +133,8 @@
 	w_class = 1.00
 	slots = 4
 	does_not_open_in_pocket = 0
-	spawn_contents = list(/obj/item/bandage = 2,
-	/obj/item/item_box/medical_patches/mini_silver_sulf,
-	/obj/item/item_box/medical_patches/mini_synthflesh)
+	spawn_contents = list(/obj/item/reagent_containers/mender/brute/high_capacity,
+	/obj/item/reagent_containers/mender/burn/high_capacity)
 
 /obj/item/storage/security_pouch
 	name = "security pouch"
@@ -140,10 +143,16 @@
 	w_class = 2.00
 	slots = 6
 	does_not_open_in_pocket = 0
-	spawn_contents = list(/obj/item/handcuffs/ = 3,\
+	spawn_contents = list(/obj/item/handcuffs = 3,\
 	/obj/item/ammo/power_cell/high_power,\
 	/obj/item/device/flash,\
 	/obj/item/instrument/whistle)
+
+/obj/item/storage/security_pouch/assistant
+	spawn_contents = list(/obj/item/handcuffs = 2,\
+	/obj/item/device/flash = 2,\
+	/obj/item/instrument/whistle,\
+	/obj/item/reagent_containers/food/snacks/donut/custom/frosted)
 
 /obj/item/storage/ntso_pouch
 	name = "tacticool pouch"

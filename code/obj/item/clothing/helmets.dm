@@ -22,6 +22,7 @@
 	item_state = "s_helmet"
 	desc = "Helps protect against vacuum."
 	seal_hair = 1
+	path_prot = 0
 
 	onMaterialChanged()
 		if(src.material)
@@ -262,7 +263,13 @@
 			name = "specialist health monitor"
 			icon_state = "syndie_specialist"
 			item_state = "syndie_specialist"
+			permeability_coefficient = 0.01
+			c_flags = SPACEWEAR | COVERSEYES | COVERSMOUTH | BLOCKCHOKE
 			var/client/assigned = null
+
+			setupProperties()
+				..()
+				setProperty("viralprot", 50)
 
 			process()
 				if (assigned)
@@ -308,6 +315,20 @@
 			name = "specialist combat cover"
 			icon_state = "syndie_specialist-sniper"
 			item_state = "syndie_specialist-sniper"
+
+		knight
+			name = "heavy specialist great helm"
+			desc = "A menacing full-face helmet for syndicate super-heavies."
+			icon_state = "syndie_specialist-knight" //todo
+			item_state = "syndie_specialist-knight" //todo
+
+		setupProperties()
+			..()
+			setProperty("meleeprot", 2)
+			setProperty("rangedprot", 1)
+			setProperty("exploprot", 10)
+			setProperty("disorient_resist_eye", 50)
+			setProperty("disorient_resist_ear", 50)
 
 /obj/item/clothing/head/helmet/space/ntso //recoloured nuke class suits for ntso vs syndicate specialist
 	name = "NT-SO combat helmet"
@@ -462,13 +483,18 @@
 	desc = "A helmet with a built in camera."
 	icon_state = "camhat"
 	c_flags = SPACEWEAR
+	mats = list("MET-1"=4, "CRY-1"=2, "CON-1"=2)
 	item_state = "camhat"
 	var/obj/machinery/camera/camera = null
 	var/camera_tag = "Helmet Cam"
 	var/camera_network = "Zeta"
+	var/static/camera_counter = 0
 
 	New()
 		..()
+		if(src.camera_tag == initial(src.camera_tag))
+			src.camera_tag = "Built [src.camera_tag] [src.camera_counter]"
+			camera_counter++
 		src.camera = new /obj/machinery/camera (src)
 		src.camera.c_tag = src.camera_tag
 		src.camera.network = src.camera_network
@@ -558,13 +584,13 @@
 			src.name = "HoS Beret"
 			src.icon_state = "hosberet"
 			src.item_state = "hosberet"
-			boutput(usr, "<span class='notice'>You fold the hat into a beret.</span>")
+			boutput(user, "<span class='notice'>You fold the hat into a beret.</span>")
 		else
 			src.folds = 0
 			src.name = "HoS Hat"
 			src.icon_state = "hoscap"
 			src.item_state = "hoscap"
-			boutput(usr, "<span class='notice'>You unfold the beret back into a hat.</span>")
+			boutput(user, "<span class='notice'>You unfold the beret back into a hat.</span>")
 		return
 
 /obj/item/clothing/head/helmet/siren
@@ -658,7 +684,6 @@
 
 /obj/item/clothing/head/helmet/space/industrial
 	mats = 7
-	c_flags = BLOCKCHOKE
 #ifdef UNDERWATER_MAP
 	icon_state = "diving_suit-industrial"
 	item_state = "diving_suit-industrial"
@@ -692,7 +717,6 @@
 	icon_state = "mining_combat"
 	item_state = "mining_combat"
 	mats = 10
-	c_flags = BLOCKCHOKE
 
 	setupProperties()
 		..()
@@ -707,7 +731,7 @@
 	icon_state = "buckethelm"
 	item_state = "buckethelm"
 	inhand_image_icon = 'icons/mob/inhand/hand_tools.dmi'
-	c_flags = BLOCKCHOKE
+	c_flags = COVERSEYES | BLOCKCHOKE
 
 	setupProperties()
 		..()
@@ -739,7 +763,7 @@
 	var/bucket_type = /obj/item/reagent_containers/glass/bucket
 
 	attack_self(mob/user as mob)
-		boutput(usr, "<span class='notice'>You turn the bucket right side up.</span>")
+		boutput(user, "<span class='notice'>You turn the bucket right side up.</span>")
 		var/obj/item/reagent_containers/glass/bucket/B = new bucket_type(src.loc)
 		user.u_equip(src)
 		user.put_in_hand_or_drop(B)

@@ -7,12 +7,13 @@
 	inhand_image_icon = 'icons/mob/inhand/hand_headgear.dmi'
 	var/obj/item/voice_changer/vchange = 0
 	body_parts_covered = HEAD
-	compatible_species = list("human", "monkey", "werewolf")
+	compatible_species = list("human", "cow", "werewolf")
 	var/is_muzzle = 0
 	var/use_bloodoverlay = 1
 	var/acid_proof = 0	//Is this mask immune to flouroacid?
 	var/stapled = 0
 	var/allow_staple = 1
+	var/path_prot = 1 // protection from airborne pathogens, multiplier for chance to be infected
 
 	New()
 		..()
@@ -108,6 +109,7 @@
 	color_r = 0.8 // green tint
 	color_g = 1
 	color_b = 0.8
+	path_prot = 0
 
 	setupProperties()
 		..()
@@ -159,6 +161,10 @@
 	name = "SWAT Mask"
 	desc = "A close-fitting tactical mask that can filter some environmental toxins or be connected to an air supply."
 	icon_state = "swat"
+	item_state = "swat"
+	color_r = 1
+	color_g = 0.8
+	color_b = 0.8
 
 /obj/item/clothing/mask/gas/voice
 	name = "gas mask"
@@ -179,6 +185,19 @@
 	icon_state = "voicechanger"
 	is_syndicate = 1
 	mats = 6
+
+/obj/item/clothing/mask/monkey_translator
+	name = "vocal translator"
+	desc = "Nanotechnology and questionable science combine to make a face-hugging translator, capable of making monkeys speak human lanauge. Or whoever wears this."
+	icon = 'icons/obj/items/items.dmi'
+	wear_image_icon = 'icons/mob/mask.dmi'
+	inhand_image_icon = 'icons/mob/inhand/hand_headgear.dmi'
+	icon_state = "voicechanger"
+	item_state = "muzzle"			// @TODO new sprite ok
+	mats = 12	// 2x voice changer cost. It's complicated ok
+	w_class = 2
+	c_flags = COVERSMOUTH	// NOT usable for internals.
+	var/new_language = "english"	// idk maybe you can varedit one so that humans speak monkey instead. who knows
 
 /obj/item/clothing/mask/breath
 	desc = "A close-fitting mask that can be connected to an air supply but does not work very well in hard vacuum without a helmet."
@@ -290,27 +309,27 @@
 
 	unequipped(mob/user)
 		. = ..()
-		if ( src.victim )
+		if (src.victim)
 			src.victim.change_misstep_chance(-25)
 			src.victim = null
 			processing_items -= src
 
 	process()
-		if ( src.victim )
+		if (src.victim)
 			if ( src.victim.health <= 0 )
 				return
-			if ( prob(45) )
+			if (prob(45))
 				boutput (src.victim, __red("[src] burns your face!"))
-				if ( prob(25) )
+				if (prob(25))
 					src.victim.emote("scream")
 				src.victim.TakeDamage("head",0,3,0,DAMAGE_BURN)
-			if ( prob(20) )
+			if (prob(20))
 				src.victim.take_brain_damage(3)
-			if ( prob(10) )
+			if (prob(10))
 				src.victim.changeStatus("stunned", 2 SECONDS)
-			if ( prob(10) )
+			if (prob(10))
 				src.victim.changeStatus("slowed", 4 SECONDS)
-			if ( prob(60) )
+			if (prob(60))
 				src.victim.emote("laugh")
 
 	afterattack(atom/target, mob/user, reach, params)
@@ -350,6 +369,11 @@
 	w_class = 1
 	c_flags = COVERSMOUTH
 	permeability_coefficient = 0.05
+	path_prot = 0
+
+	setupProperties()
+		..()
+		setProperty("viralprot", 50) // fashion reasons, they're *space* masks, ok?
 
 /obj/item/clothing/mask/surgical_shield
 	name = "surgical face shield"
@@ -474,6 +498,7 @@
 	color_r = 0.95 // darken just a little
 	color_g = 0.95
 	color_b = 0.95
+	path_prot = 0
 
 /obj/item/clothing/mask/chicken
 	name = "chicken mask"

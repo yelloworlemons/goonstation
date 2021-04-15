@@ -72,7 +72,7 @@
 				"z" = src.get_z_info(T)
 			)
 
-	for (var/obj/machinery/beacon/beac as() in machine_registry[MACHINES_BEACONS])
+	for (var/obj/machinery/beacon/beac as anything in machine_registry[MACHINES_BEACONS])
 		if (beac.enabled == 1)
 			var/turf/T = get_turf(beac.loc)
 			beacon_list += list(

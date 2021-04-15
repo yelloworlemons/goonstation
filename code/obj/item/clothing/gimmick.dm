@@ -25,6 +25,14 @@
 		..()
 		src.vchange = new(src) // Built-in voice changer (Convair880).
 
+	equipped(mob/user)
+		. = ..()
+		APPLY_MOB_PROPERTY(user, PROP_THERMALSIGHT_MK2, src)
+
+	unequipped(mob/user)
+		REMOVE_MOB_PROPERTY(user, PROP_THERMALSIGHT_MK2, src)
+		. = ..()
+
 /obj/item/clothing/under/gimmick/hunter
 	name = "Hunter Suit"
 	desc = "Fishnets, bandoliers and plating? What the hell?"
@@ -89,7 +97,6 @@
 	desc = "Twoooo!"
 	icon_state = "owl"
 	item_state = "owl"
-	compatible_species = list("human", "monkey")
 
 	equipped(var/mob/user)
 		..()
@@ -330,6 +337,7 @@
 	//undo if bug
 	cant_self_remove = 0
 	cant_other_remove = 0
+	var/infectious = 0
 
 /obj/item/clothing/mask/cursedclown_hat/equipped(var/mob/user, var/slot)
 	..()
@@ -342,6 +350,8 @@
 		user.job = "Cluwne"
 		src.cant_self_remove = 1
 		src.cant_other_remove = 1
+		if(src.infectious && user.reagents)
+			user.reagents.add_reagent("painbow fluid",10)
 	return
 
 /obj/item/clothing/mask/cursedclown_hat/custom_suicide = 1
@@ -365,6 +375,7 @@
 	icon_state = "cursedclown"
 	item_state = "cclown_shoes"
 	step_sound = "cluwnestep"
+	compatible_species = list("human", "cow")
 	cant_self_remove = 1
 	cant_other_remove = 1
 	step_lots = 1
@@ -1332,6 +1343,16 @@ ABSTRACT_TYPE(/obj/item/clothing/gloves/ring)
 					H.hud.update_ability_hotbar()
 		..()
 
+/obj/item/clothing/under/gimmick/pajamas
+	name = "pajamas"
+#ifdef UNDERWATER_MAP //gimmick jumpsuit descriptions are serious business
+	desc = "Going outside when in an ocean is kinda wet, so why bother getting dressed?"
+#else
+	desc = "Going outside when in space is kinda dangerous, so why bother getting dressed?"
+#endif
+	icon_state = "pajamas"
+	item_state = "pajamas"
+
 /obj/item/clothing/under/gimmick/shirtnjeans
 	name = "shirt and jeans"
 	desc = "A white shirt and a pair of torn jeans."
@@ -1485,6 +1506,7 @@ ABSTRACT_TYPE(/obj/item/clothing/gloves/ring)
 	name = "rollerskates"
 	desc = "A pair of rollerskates, invented when experimental teleportation technology fused a pair of tacky boots and a shopping cart."
 	c_flags = NOSLIP
+	icon_state = "rollerskates"
 
 /obj/item/clothing/under/gimmick/itsyourcousin
 	name = "tacky shirt and slacks"

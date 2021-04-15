@@ -13,20 +13,20 @@ var/datum/action_controller/actions
 		return 0
 
 	proc/stop_all(var/atom/owner) //Interrupts all actions of a given owner.
-		if(running.Find(owner))
+		if(owner in running)
 			for(var/datum/action/A in running[owner])
 				A.interrupt(INTERRUPT_ALWAYS)
 		return
 
 	proc/stop(var/datum/action/A, var/atom/owner) //Manually interrupts a given action of a given owner.
-		if(running.Find(owner))
+		if(owner in running)
 			var/list/actions = running[owner]
-			if(actions.Find(A))
+			if(A in actions)
 				A.interrupt(INTERRUPT_ALWAYS)
 		return
 
 	proc/stopId(var/id, var/atom/owner) //Manually interrupts a given action id of a given owner.
-		if(running.Find(owner))
+		if(owner in running)
 			var/list/actions = running[owner]
 			for(var/datum/action/A in actions)
 				if(A.id == id)
@@ -52,7 +52,7 @@ var/datum/action_controller/actions
 		return A // cirr here, I added action ref to the return because I need it for AI stuff, thank you
 
 	proc/interrupt(var/atom/owner, var/flag) //Is called by all kinds of things to check for action interrupts.
-		if(running.Find(owner))
+		if(owner in running)
 			for(var/datum/action/A in running[owner])
 				A.interrupt(flag)
 		return
@@ -66,7 +66,7 @@ var/datum/action_controller/actions
 					A.onEnd()
 					//continue //If this is not commented out the deletion will take place the tick after the action ends. This will break things like objects being deleted onEnd with progressbars - the bars will be left behind. But it will look better for things that do not do this.
 
-				if(A.state == ACTIONSTATE_DELETE)
+				if(A.state == ACTIONSTATE_DELETE || A.disposed)
 					A.onDelete()
 					running[X] -= A
 					continue
@@ -129,6 +129,11 @@ var/datum/action_controller/actions
 /datum/action/bar //This subclass has a progressbar that attaches to the owner to show how long we need to wait.
 	var/obj/actions/bar/bar
 	var/obj/actions/border/border
+	var/bar_icon_state = "bar"
+	var/border_icon_state = "border"
+	var/color_active = "#4444FF"
+	var/color_success = "#00CC00"
+	var/color_failure = "#CC0000"
 
 	onStart()
 		..()
@@ -136,13 +141,15 @@ var/datum/action_controller/actions
 		if(owner != null)
 			bar = unpool(/obj/actions/bar)
 			border = unpool(/obj/actions/border)
+			border.set_icon_state(src.border_icon_state)
+			bar.set_icon_state(src.bar_icon_state)
 			bar.pixel_y = 5
 			bar.pixel_x = 0
 			border.pixel_y = 5
 			A.vis_contents += bar
 			A.vis_contents += border
 			// this will absolutely obviously cause no problems.
-			bar.color = "#4444FF"
+			bar.color = src.color_active
 			updateBar()
 
 	onRestart()
@@ -184,7 +191,7 @@ var/datum/action_controller/actions
 	onEnd()
 		if (bar)
 			bar.color = "#FFFFFF"
-			animate( bar, color = "#00CC00", time = 2.5 , flags = ANIMATION_END_NOW)
+			animate( bar, color = src.color_success, time = 2.5 , flags = ANIMATION_END_NOW)
 			bar.transform = matrix() //Tiny cosmetic fix. Makes it so the bar is completely filled when the action ends.
 		..()
 
@@ -193,13 +200,13 @@ var/datum/action_controller/actions
 			if (bar)
 				updateBar(0)
 				bar.color = "#FFFFFF"
-				animate( bar, color = "#CC0000", time = 2.5 )
+				animate( bar, color = src.color_failure, time = 2.5 )
 		..()
 
 	onResume()
 		if (bar)
 			updateBar()
-			bar.color = "#4444FF"
+			bar.color = src.color_active
 		..()
 
 	onUpdate()
@@ -207,7 +214,7 @@ var/datum/action_controller/actions
 		..()
 
 	updateBar(var/animate = 1)
-		if (duration <= 0)
+		if (duration <= 0 || isnull(bar))
 			return
 		var/done = TIME - started
 		// inflate it a little to stop it from hitting 100% "too early"
@@ -222,6 +229,11 @@ var/datum/action_controller/actions
 		return
 
 /datum/action/bar/blob_health // WOW HACK
+	bar_icon_state = "bar-blob"
+	border_icon_state = "border-blob"
+	color_active = "#9eee80"
+	color_success = "#167935"
+	color_failure = "#8d1422"
 	onUpdate()
 		var/obj/blob/B = owner
 		if (!owner || !istype(owner) || !bar || !border) //Wire note: Fix for Cannot modify null.invisibility
@@ -367,7 +379,7 @@ var/datum/action_controller/actions
 	/// a list of args for the proc thats called once the action bar finishes, if needed.
 	var/list/proc_args = null
 
-	New(var/owner, var/target, var/duration, var/proc_path, var/icon, var/icon_state, var/end_message)
+	New(owner, target, duration, proc_path, proc_args, icon, icon_state, end_message)
 		..()
 		if (owner)
 			src.owner = owner
@@ -383,6 +395,8 @@ var/datum/action_controller/actions
 			src.proc_path = proc_path
 		else //no proc, dont do the thing
 			CRASH("no proc was specified to be called once the action bar ends")
+		if (proc_args)
+			src.proc_args = proc_args
 		if (icon) //optional, dont always want an icon
 			src.icon = icon
 			if (icon_state) //optional, dont always want an icon state
@@ -420,11 +434,12 @@ var/datum/action_controller/actions
 		if (src.target && !IN_RANGE(src.owner, src.target, src.maximum_range))
 			interrupt(INTERRUPT_ALWAYS)
 
-		src.owner.visible_message("[src.end_message]")
+		if (end_message)
+			src.owner.visible_message("[src.end_message]")
 		if (src.target)
-			INVOKE_ASYNC(src.target, src.proc_path, src.proc_args)
+			INVOKE_ASYNC(arglist(list(src.target, src.proc_path) + src.proc_args))
 		else
-			INVOKE_ASYNC(src.owner, src.proc_path, src.proc_args)
+			INVOKE_ASYNC(arglist(list(src.owner, src.proc_path) + src.proc_args))
 
 /datum/action/bar/icon/build
 	duration = 30
@@ -516,6 +531,7 @@ var/datum/action_controller/actions
 		repairing.adjustHealth(repairing.health_max)
 
 /datum/action/bar/private //This subclass is only visible to the owner of the action
+	border_icon_state = "border-private"
 	onStart()
 		..()
 		bar.icon = null
@@ -910,6 +926,12 @@ var/datum/action_controller/actions
 
 		owner.visible_message("<span class='alert'><B>[owner] attempts to remove the handcuffs!</B></span>")
 
+	onUpdate()
+		. = ..()
+		if(!owner.hasStatus("handcuffed"))
+			interrupt(INTERRUPT_ALWAYS)
+			return
+
 	onInterrupt(var/flag)
 		..()
 		boutput(owner, "<span class='alert'>Your attempt to remove your handcuffs was interrupted!</span>")
@@ -992,6 +1014,10 @@ var/datum/action_controller/actions
 		overlays.len = 0
 		..()
 
+	set_icon_state(new_state)
+		..()
+		src.img.icon_state = new_state
+
 /obj/actions/border
 	layer = 100
 	icon_state = "border"
@@ -1013,6 +1039,10 @@ var/datum/action_controller/actions
 		attached_objs = list()
 		overlays.len = 0
 		..()
+
+	set_icon_state(new_state)
+		..()
+		src.img.icon_state = new_state
 
 //Use this to start the action
 //actions.start(new/datum/action/bar/private/icon/magPicker(item, picker), usr)

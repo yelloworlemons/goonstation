@@ -3122,7 +3122,7 @@
 /obj/table/round,
 /obj/item/decoration/ashtray,
 /obj/item/clothing/mask/cigarette,
-/obj/item/card_box/suit,
+/obj/item/card_box/plain,
 /obj/decal/cleanable/dirt,
 /turf/unsimulated/floor/red,
 /area/owlery/gangzone)
@@ -3138,7 +3138,7 @@
 	},
 /area/owlery/Owlopen)
 "hz" = (
-/obj/item/flamethrower/assembled/loaded,
+/obj/item/gun/flamethrower/assembled/loaded,
 /obj/item/clothing/suit/fire/armored,
 /obj/item/clothing/head/helmet/welding,
 /obj/storage/secure/crate/weapon/confiscated_items,
@@ -4503,7 +4503,7 @@
 /area/owlery/office)
 "kv" = (
 /obj/decal/cleanable/blood/drip/high,
-/obj/reagent_dispensers/spiders,
+/obj/reagent_dispensers/cleanable/spiders,
 /turf/unsimulated/floor/red,
 /area/owlery/gangzone)
 "kw" = (
@@ -10013,7 +10013,7 @@
 /area/owlery/gangzone)
 "wp" = (
 /obj/table/auto,
-/obj/item/card_box/suit,
+/obj/item/card_box/plain,
 /turf/unsimulated/floor/yellow,
 /area/owlery/gangzone)
 "wq" = (
@@ -10193,7 +10193,6 @@
 	},
 /area/owlery/gangzone)
 "wD" = (
-/obj/item/paper/card_manual,
 /turf/unsimulated/floor/yellowblack{
 	icon_state = "yellowblack";
 	dir = 1

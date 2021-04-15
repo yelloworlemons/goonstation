@@ -777,7 +777,7 @@
 	upperfluc = 100
 	lowerfluc = -100
 
-/datum/commodity/drugs/lsd_bee
+/datum/commodity/drug/lsd_bee
 	comname = "LSBee (1x patch)"
 	comtype = /obj/item/reagent_containers/patch/lsd_bee
 	desc = "A highly potent hallucinogenic substance. It smells like honey."
@@ -2155,6 +2155,20 @@
 	upperfluc = 150
 	lowerfluc = -100
 
+/datum/commodity/costume/mime
+	comname = "Mime Clothes"
+	comtype = /obj/item/storage/box/costume/mime
+	desc = "No words can describe this. Only intricate gesticulation."
+	price = 100 //exactly what the clown spawns with in their account, three mimes on mondays.
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
+/datum/commodity/costume/mime/alt
+	comname = "Alternate Mime Clothes."
+	comtype = /obj/item/storage/box/costume/mime/alt
+	desc = "This stuff will give you an edge in charades."
+
 /datum/commodity/balloons //no it ain't a costume kit but it's going in Geoff's wares so idgaf tOt fite me
 	comname = "box of balloons"
 	comtype = /obj/item/storage/box/balloonbox
@@ -2734,3 +2748,12 @@
 	baseprice = 2000
 	upperfluc = 1700
 	lowerfluc = -1700
+
+/datum/commodity/expensive_card
+	comname = "Incredibly Expensive Card"
+	desc = "Wow...people really pay a lot for these cards..."
+	comtype = /obj/item/playing_card/expensive
+	onmarket = 1
+	price = 21000
+	upperfluc = 20000
+	lowerfluc = -28500
