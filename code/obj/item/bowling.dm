@@ -6,13 +6,14 @@
 	inhand_image_icon = 'icons/mob/inhand/jumpsuit/hand_js_athletic.dmi'
 	icon_state = "bowling"
 	item_state = "bowling"
+	item_function_flags = IMMUNE_TO_ACID
 
 /obj/item/bowling_ball
 	name = "bowling ball"
 	desc = "Just keep rollin' rollin'."
 	icon = 'icons/obj/items/items.dmi'
 	icon_state = "bowling_ball"
-	w_class = 3.0
+	w_class = W_CLASS_NORMAL
 	force = 5
 	throw_speed = 1
 
@@ -48,7 +49,7 @@
 		if(user)
 			src.icon_state = "bowling_ball"
 
-	throw_impact(atom/hit_atom)
+	throw_impact(atom/hit_atom, datum/thrown_thing/thr)
 		var/mob/living/carbon/human/user = usr
 
 		src.icon_state = "bowling_ball"

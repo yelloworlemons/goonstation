@@ -8,7 +8,7 @@
 	human_only = 0
 	pointCost = 4
 	can_use_in_container = 1
-	dont_lock_holder = 1
+	dont_lock_holder = 0
 
 	incapacitationCheck()
 		return 0
@@ -87,7 +87,7 @@
 
 		if (spider.mind && ticker.mode)
 			if (!spider.mind.special_role)
-				spider.mind.special_role = "handspider"
+				spider.mind.special_role = ROLE_HANDSPIDER
 			if (!(spider.mind in ticker.mode.Agimmicks))
 				ticker.mode.Agimmicks += spider.mind
 			spider.mind.master = owner.ckey
@@ -110,7 +110,7 @@
 	human_only = 0
 	pointCost = 0 // free for now, given you have to lose a fuckin' EYE
 	can_use_in_container = 1
-	dont_lock_holder = 1
+	dont_lock_holder = 0
 
 	incapacitationCheck()
 		return 0
@@ -179,7 +179,7 @@
 
 		if (spider.mind && ticker.mode)
 			if (!spider.mind.special_role)
-				spider.mind.special_role = "eyespider"
+				spider.mind.special_role = ROLE_EYESPIDER
 			if (!(spider.mind in ticker.mode.Agimmicks))
 				ticker.mode.Agimmicks += spider.mind
 			spider.mind.master = owner.ckey
@@ -203,7 +203,7 @@
 	human_only = 0
 	pointCost = 6
 	can_use_in_container = 1
-	dont_lock_holder = 1
+	dont_lock_holder = 0
 
 	incapacitationCheck()
 		return 0
@@ -272,7 +272,7 @@
 
 		if (spider.mind && ticker.mode)
 			if (!spider.mind.special_role)
-				spider.mind.special_role = "legworm"
+				spider.mind.special_role = ROLE_LEGWORM
 			if (!(spider.mind in ticker.mode.Agimmicks))
 				ticker.mode.Agimmicks += spider.mind
 			spider.mind.master = owner.ckey
@@ -295,7 +295,7 @@
 	human_only = 0
 	pointCost = 1
 	can_use_in_container = 1
-	dont_lock_holder = 1
+	dont_lock_holder = 0
 
 	incapacitationCheck()
 		return 0
@@ -356,7 +356,7 @@
 
 		if (crab.mind && ticker.mode)
 			if (!crab.mind.special_role)
-				crab.mind.special_role = "buttcrab"
+				crab.mind.special_role = ROLE_BUTTCRAB
 			if (!(crab.mind in ticker.mode.Agimmicks))
 				ticker.mode.Agimmicks += crab.mind
 			crab.mind.master = owner.ckey

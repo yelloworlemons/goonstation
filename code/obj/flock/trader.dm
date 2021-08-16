@@ -121,11 +121,11 @@
 	var/range = 4
 
 	New()
-		teleport_jammers += src
+		START_TRACKING_CAT(TR_CAT_TELEPORT_JAMMERS)
 		..()
 
 	disposing()
-		teleport_jammers -= src
+		STOP_TRACKING_CAT(TR_CAT_TELEPORT_JAMMERS)
 		..()
 
 /obj/item/device/flockblocker/attack_self(mob/user as mob)
@@ -368,7 +368,7 @@
 	trader.greet(user)
 
 /obj/flock_reclaimer/attackby(obj/item/W as obj, mob/user as mob)
-	if(!W || !user)
+	if(!W || !user || W.cant_drop)
 		return
 	if(istype(W, /obj/item/grab))
 		boutput(user, "<span class='alert'>You can't fit them into this, sadly.</span>")

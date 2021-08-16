@@ -13,7 +13,8 @@
 	cast()
 		if(!holder)
 			return
-		holder.owner.say("ERATH QUUK")
+		if(!istype(get_area(holder.owner), /area/sim/gunsim))
+			holder.owner.say("ERATH QUUK")
 		..()
 
 		playsound(holder.owner.loc, "sound/effects/exlow.ogg", 25, 1, -1)
@@ -69,6 +70,7 @@
 	pixel_x = -96
 
 	New()
+		..()
 		src.Scale(0,0)
 		animate(src, matrix(1.4, MATRIX_SCALE), time = 6, color = "#ffdddd", easing = LINEAR_EASING)
 		animate(time = 2, alpha = 0)

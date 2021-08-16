@@ -17,6 +17,7 @@
 	contraband = 2
 
 	New()
+		..()
 		var/obj/item/remote/cloak_gen/remote = new /obj/item/remote/cloak_gen(src.loc)
 		SPAWN_DBG(0)
 			remote.my_gen = src
@@ -98,7 +99,7 @@
 	icon_state = "remote"
 	item_state = "electronic"
 	is_syndicate = 1
-	w_class = 2.0
+	w_class = W_CLASS_SMALL
 	var/obj/item/cloak_gen/my_gen = null
 	var/anti_spam = 0 // Creating and deleting overlays en masse can cause noticeable lag (Convair880).
 	contraband = 2

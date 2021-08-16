@@ -2,7 +2,7 @@
 	name = "hive robot module"
 	icon = 'icons/obj/module.dmi'
 	icon_state = "std_module"
-	w_class = 2.0
+	w_class = W_CLASS_SMALL
 	item_state = "electronic"
 	flags = FPRINT|TABLEPASS | CONDUCT
 	var/list/tools = list()
@@ -17,6 +17,7 @@
 	name = "HiveBot engineering robot module"
 
 /obj/item/hive_module/New()//Shit all the mods have
+	..()
 	src.tools += new /obj/item/device/flash(src)
 
 
@@ -36,6 +37,7 @@
 	src.tools += R
 
 /obj/item/hive_module/engineering/New()
+	..()
 
 	src.tools += new /obj/item/extinguisher(src)
 
@@ -51,6 +53,7 @@
 
 
 /obj/item/hive_module/construction/New()
+	..()
 
 	src.tools += new /obj/item/crowbar(src)
 	src.tools += new /obj/item/weldingtool(src)

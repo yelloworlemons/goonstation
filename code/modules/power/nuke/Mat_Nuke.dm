@@ -44,6 +44,7 @@ datum
 				k_factor = 0.3
 
 				New()
+					..()
 					setProperty("density", 75)
 					setProperty("fissile", 10)
 					setProperty("radioactive", 25)
@@ -68,6 +69,7 @@ datum
 				k_factor = 3.0
 
 				New()
+					..()
 					setProperty("density", 75)
 					setProperty("fissile", 75)
 					setProperty("radioactive", 55)
@@ -92,6 +94,7 @@ datum
 				k_factor = 5.0
 
 				New()
+					..()
 					setProperty("density", 85)
 					setProperty("radioactive", 65)
 					setProperty("fissile", 85)
@@ -116,6 +119,7 @@ datum
 				k_factor = 20.0
 
 				New()
+					..()
 					setProperty("density", 90)
 					setProperty("radioactive", 100)
 					setProperty("fissile", 100)
@@ -165,7 +169,7 @@ datum
 			if(X == "type" || X == "parent_type" || X == "tag" || X == "vars" || X == "properties") continue
 
 			if(X in triggerVars)
-				M.vars[X] = getFusedTriggers(base.vars[X], list()) //Pass in an empty list to basically copy the first one.
+				M.vars[X] = getFusedTriggers(base.vars[X], list(), M) //Pass in an empty list to basically copy the first one.
 			else
 				if(M.vars.Find(X))
 					if(istype(base.vars[X],/list))

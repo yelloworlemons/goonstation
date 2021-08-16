@@ -14,6 +14,7 @@
 	soundproofing = 0
 	on = 1
 	locked = 1
+	access_lookup = "Captain"
 	var/atom/movable/load = null		// the loaded crate (usually)
 
 	var/beacon_freq = 1445
@@ -27,7 +28,6 @@
 	var/destination = ""		// destination description
 	var/home_destination = "" 	// tag of home beacon
 	req_access = list(access_cargo)
-	var/list/path = null
 
 	var/mode = 0		//0 = idle/ready
 						//1 = loading/unloading
@@ -71,8 +71,6 @@
 
 	New()
 		..()
-		botcard = new(src)
-		botcard.access = get_access("Captain")
 
 		var/global/mulecount = 0
 		if(!suffix)
@@ -278,7 +276,7 @@
 			return
 		if (usr.stat)
 			return
-		if ((in_range(src, usr) && istype(src.loc, /turf)) || (issilicon(usr)))
+		if ((in_interact_range(src, usr) && istype(src.loc, /turf)) || (issilicon(usr)))
 			src.add_dialog(usr)
 
 			switch(href_list["op"])
@@ -411,7 +409,7 @@
 
 	// returns true if the bot has power
 	proc/has_power()
-		return !open && cell && cell.charge>0 && (wires & wire_power1) && (wires & wire_power2)
+		return !open && cell?.charge>0 && (wires & wire_power1) && (wires & wire_power2)
 
 	// mousedrop a crate to load the bot
 	MouseDrop_T(var/atom/movable/C, mob/user)
@@ -429,7 +427,7 @@
 
 	// called to load a crate
 	proc/load(var/atom/movable/C)
-		if (istype(C, /obj/screen) || C.anchored)
+		if (istype(C, /atom/movable/screen) || C.anchored)
 			return
 
 		if(get_dist(C, src) > 1 || load || !on)
@@ -491,31 +489,27 @@
 			AM.pixel_y = initial(AM.pixel_y)
 		mode = 0
 
+	var/last_process_time
+
 	process()
+		. = ..()
+		var/time_since_last = TIME - last_process_time
+		last_process_time = TIME
 		if(!has_power())
 			on = 0
 			return
 		if(on)
 			SPAWN_DBG(0)
-				var/speed = ((wires & wire_motor1) ? 1:0) + ((wires & wire_motor2) ? 2:0)
-				//boutput(world, "speed: [speed]")
+				// speed varies between 1-4 depending on how many wires are cut (and which of the two)
+				var/speed = ((wires & wire_motor1) ? 1:0) + ((wires & wire_motor2) ? 2:0) + 1
+				// both wires results in no speed at all :(
+				var/n_steps = list(0, 12, 7, 6)[speed]
 
-				switch(speed)
-				// 0 is can't move, 1 is fastest, 3 is slowest (normal unhacked)
-					if(0)
-						// do nothing
-					if(1)
-						for (var/i = 1 to 6)
-							sleep(0.2 SECONDS)
-							process_bot()
-					if(2)
-						for (var/i = 1 to 6)
-							sleep(0.3 SECONDS)
-							process_bot()
-					if(3)
-						for (var/i = 1 to 5)
-							sleep(0.4 SECONDS)
-							process_bot()
+				var/sleep_time = n_steps ? clamp(time_since_last / n_steps, 0.04 SECONDS, 1.5 SECONDS) : 0
+
+				for (var/i = 1 to n_steps)
+					sleep(sleep_time)
+					process_bot()
 
 	proc/process_bot()
 		//if(mode) boutput(world, "Mode: [mode]")
@@ -531,7 +525,7 @@
 					at_target()
 					return
 
-				else if(path && path.len > 0 && target) // valid path
+				else if(length(path) && target) // valid path
 					var/turf/next = path[1]
 					reached_target = 0
 					if(next == loc)
@@ -545,17 +539,18 @@
 							var/obj/decal/cleanable/blood/tracks/B = make_cleanable(/obj/decal/cleanable/blood/tracks, loc)
 							var/newdir = get_dir(next, loc)
 							if(newdir == dir)
-								B.dir = newdir
+								B.set_dir(newdir)
 							else
 								newdir = newdir | dir
 								if(newdir == 3)
 									newdir = 1
 								else if(newdir == 12)
 									newdir = 4
-								B.dir = newdir
+								B.set_dir(newdir)
 							bloodiness--
 
-						var/moved = step_towards(src, next)	// attempt to move
+						step_towards(src, next)	// attempt to move
+						var/moved = src.loc == next // step_towards return value is unreliable at best and always false at worst
 						if(cell) cell.use(1)
 						if(moved)	// successful move
 							//boutput(world, "Successful move.")
@@ -705,7 +700,7 @@
 				else
 					src.visible_message("<span class='alert'>[src] knocks over [M]!</span>")
 					M.pulling = null
-					M.changeStatus("stunned", 80)
+					M.changeStatus("stunned", 8 SECONDS)
 					M.changeStatus("weakened", 5 SECONDS)
 					M.lying = 1
 					M.set_clothing_icon_dirty()

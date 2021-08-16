@@ -11,6 +11,7 @@
 	can_research = 0
 	can_make_injector = 0
 	reclaim_fail = 100
+	acceptable_in_mutini = 0
 	effectType = EFFECT_TYPE_POWER
 
 	//Moved special job stuff (chaplain, medical) over to traits system.
@@ -121,6 +122,7 @@
 	msgGain = "You don't feel quite right."
 	msgLose = "You feel normal again."
 	var/outOfPod = 0 //Out of the cloning pod.
+	var/timeInCryo = 0 // Time spent in a cryo tube
 
 	OnAdd()
 		..()
@@ -135,21 +137,36 @@
 			owner.set_mutantrace(null)
 		return
 
-	OnLife()
+	OnLife(var/mult)
 		if(..()) return
 		if(!istype(owner:mutantrace, /datum/mutantrace/premature_clone))
 			holder.RemoveEffect(id)
 
 		if (outOfPod)
-			if (prob(6))
+			if (probmult(6))
 				owner.visible_message("<span class='alert'>[owner.name] suddenly and violently vomits!</span>")
 				owner.vomit()
 
-			else if (prob(2))
+			else if (probmult(2))
 				owner.visible_message("<span class='alert'>[owner.name] vomits blood!</span>")
 				playsound(owner.loc, "sound/impact_sounds/Slimy_Splat_1.ogg", 50, 1)
 				random_brute_damage(owner, rand(5,8))
 				bleed(owner, rand(5,8), 5)
+
+			if (istype(owner.loc, /obj/machinery/atmospherics/unary/cryo_cell))
+				if (owner.bodytemperature < owner.base_body_temp - 80 && (owner.max_health - owner.health < 10))
+					// cryoxadone checks for 100 under; this is a little higher to account
+					// for the healing cryoxadone does (which increases temp), given that
+					// premature clones randomly take damage.
+					timeInCryo++
+
+					if (timeInCryo == 1)
+						boutput(owner, "<span class='notice'>You feel a little better.</span>")
+					else if (timeInCryo == 5)
+						// Being in cryo long enough will help fix your messed-up genes.
+						timeLeft = 1
+			else
+				timeInCryo = 0
 
 		else if (!istype(owner.loc, /obj/machinery/clonepod))
 			outOfPod = 1
@@ -173,9 +190,9 @@
 		if (prob(5))
 			src.variant = 2
 
-	OnLife()
+	OnLife(var/mult)
 		if(..()) return
-		if (prob(10))
+		if (probmult(10))
 			for(var/mob/living/carbon/C in view(6,get_turf(owner)))
 				if (C == owner)
 					continue

@@ -45,7 +45,7 @@
 
 // vampire (thrall uses the mindslave popup)
 #define SHOW_VAMPIRE_TIPS(M) M.Browse(grabResource("html/traitorTips/vampireTips.html"), ANTAG_TIPS_WINDOW)
-#define SHOW_VAMPZOMBIE_TIPS(M) M.Browse(grabResource("html/traitorTips/vampiriczombieTips.html"), ANTAG_TIPS_WINDOW)
+#define SHOW_VAMPTHRALL_TIPS(M) M.Browse(grabResource("html/traitorTips/vampiricthrallTips.html"), ANTAG_TIPS_WINDOW)
 
 // changeling
 #define SHOW_CHANGELING_TIPS(M) M.Browse(grabResource("html/traitorTips/changelingTips.html"), ANTAG_TIPS_WINDOW)
@@ -62,6 +62,7 @@
 #define SHOW_MARTIAN_TIPS(M) M.Browse(grabResource("html/traitorTips/martianInfiltrator.html"), ANTAG_TIPS_WINDOW)
 #define SHOW_KUDZU_TIPS(M) M.Browse(grabResource("html/traitorTips/kudzu.html"), ANTAG_TIPS_WINDOW)
 #define SHOW_FOOTBALL_TIPS(M) M.Browse(grabResource("html/traitorTips/football.html"), ANTAG_TIPS_WINDOW)
+#define SHOW_ZOMBIE_TIPS(M) M.Browse(grabResource("html/traitorTips/zombieTips.html"), ANTAG_TIPS_WINDOW)
 
 // borg does things a little differently
 #define BORG_EMAGGED_MSG "<span class='alert'><b>PROGRAM EXCEPTION AT 0x05BADDAD</b></span><br><span class='alert'><b>Law ROM data corrupted. Unable to restore...</b></span>"
@@ -77,6 +78,9 @@
 
 // mindwipe from cloner zap chance
 #define SHOW_MINDWIPE_TIPS(M) M.Browse(grabResource("html/mindwipe.html"), MINDWIPE_TIPS_WINDOW)
+
+//Instructions for pod-wars gametype
+#define SHOW_POD_WARS(M) M.Browse(grabResource("html/traitorTips/pod_wars.html"), ANTAG_TIPS_WINDOW)
 
 /datum/adminAntagPopups
 	var/html
@@ -225,9 +229,7 @@
 			if ("vampire")
 				SHOW_VAMPIRE_TIPS(M)
 			if ("vampthrall")
-				SHOW_MINDSLAVE_TIPS(M)
-			if ("vampzombie")
-				SHOW_VAMPZOMBIE_TIPS(M)
+				SHOW_VAMPTHRALL_TIPS(M)
 			if ("changeling")
 				SHOW_CHANGELING_TIPS(M)
 			if ("handspider")

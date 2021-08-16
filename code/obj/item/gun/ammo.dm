@@ -9,7 +9,7 @@
 	m_amt = 40000
 	g_amt = 0
 	throwforce = 2
-	w_class = 1.0
+	w_class = W_CLASS_TINY
 	throw_speed = 4
 	throw_range = 20
 	var/datum/projectile/ammo_type
@@ -55,8 +55,6 @@
 	var/max_amount = 1000
 	var/unusualCell
 	ammo_type = new/datum/projectile/bullet
-	module_research = list("weapons" = 2, "miniaturization" = 5)
-	module_research_type = /obj/item/ammo/bullets
 
 	var/icon_dynamic = 0 // For dynamic desc and/or icon updates (Convair880).
 	var/icon_short = null // If dynamic = 1, the short icon_state has to be specified as well.
@@ -71,7 +69,8 @@
 	New()
 		..()
 		SPAWN_DBG(2 SECONDS)
-			src.update_icon() // So we get dynamic updates right off the bat. Screw static descs.
+			if (!src.disposed)
+				src.update_icon() // So we get dynamic updates right off the bat. Screw static descs.
 		return
 
 	use(var/amt = 0)
@@ -85,7 +84,7 @@
 
 	attackby(obj/b as obj, mob/user as mob)
 		if(istype(b, /obj/item/gun/kinetic) && b:allowReverseReload)
-			b.attackby(src, user)
+			b.Attackby(src, user)
 		else if(b.type == src.type)
 			var/obj/item/ammo/bullets/A = b
 			if(A.amount_left<1)
@@ -127,7 +126,10 @@
 		else if (A.caliber in K.caliber) // Some guns can have multiple calibers.
 			check = 1
 		else if (K.caliber == null) // Special treatment for zip guns, huh.
-			check = 1
+			if (A.caliber == 1.58)  // Prevent MRPT rocket
+				check = 0
+			else
+				check = 1
 		if (!check)
 			return 0
 			//DEBUG_MESSAGE("Couldn't swap [K]'s ammo ([K.ammo.type]) with [A.type].")
@@ -147,6 +149,7 @@
 			ammoDrop.delete_on_reload = 1 // No duplicating empty magazines, please.
 			ammoDrop.update_icon()
 			usr.put_in_hand_or_drop(ammoDrop)
+			ammoDrop.after_unload(usr)
 			K.ammo.amount_left = 0 // Make room for the new ammo.
 			K.ammo.loadammo(A, K) // Let the other proc do the work for us.
 			//DEBUG_MESSAGE("Swapped [K]'s ammo with [A.type]. There are [A.amount_left] round left over.")
@@ -166,6 +169,7 @@
 			ammoHand.delete_on_reload = 1 // No duplicating empty magazines, please.
 			ammoHand.update_icon()
 			usr.put_in_hand_or_drop(ammoHand)
+			ammoHand.after_unload(usr)
 
 			var/obj/item/ammo/bullets/ammoGun = new A.type // Ditto.
 			ammoGun.amount_left = A.amount_left
@@ -178,7 +182,7 @@
 			qdel(A) // We don't need you anymore.
 			ammoGun.set_loc(K)
 			K.ammo = ammoGun
-			K.current_projectile = ammoGun.ammo_type
+			K.set_current_projectile(ammoGun.ammo_type)
 			if(K.silenced)
 				K.current_projectile.shot_sound = 'sound/machines/click.ogg'
 			K.update_icon()
@@ -197,13 +201,16 @@
 		else if (A.caliber in K.caliber)
 			check = 1
 		else if (K.caliber == null)
-			check = 1 // For zip guns.
+			if (A.caliber > 1) // Prevent MRPT rocket
+				check = 0
+			else
+				check = 1 // For zip guns.
 		if (!check)
 			return 1
 
 		K.add_fingerprint(usr)
 		A.add_fingerprint(usr)
-		playsound(get_turf(K), sound_load, 50, 1)
+		playsound(K, sound_load, 50, 1)
 
 		if (K.ammo.amount_left < 0)
 			K.ammo.amount_left = 0
@@ -229,7 +236,7 @@
 				qdel(K.ammo)
 				ammoGun.set_loc(K)
 				K.ammo = ammoGun
-				K.current_projectile = A.ammo_type
+				K.set_current_projectile(A.ammo_type)
 				if(K.silenced)
 					K.current_projectile.shot_sound = 'sound/machines/click.ogg'
 
@@ -262,17 +269,22 @@
 		if (src.amount_left < 0)
 			src.amount_left = 0
 		inventory_counter.update_number(src.amount_left)
-
-	// src.desc = text("There are [] [] bullet\s left!", src.amount_left, (ammo_type.material && istype(ammo_type, /datum/material/metal/silver)))
-		src.desc = "There are [src.amount_left][ammo_type.material && istype(ammo_type, /datum/material/metal/silver) ? " silver " : " "]bullet\s left!"
-
+		src.tooltip_rebuild = 1
 		if (src.amount_left > 0)
 			if (src.icon_dynamic && src.icon_short)
 				src.icon_state = text("[src.icon_short]-[src.amount_left]")
+			else if(src.icon_empty)
+				src.icon_state = initial(src.icon_state)
 		else
 			if (src.icon_empty)
 				src.icon_state = src.icon_empty
 		return
+
+	proc/after_unload(mob/user)
+		return
+
+	get_desc()
+		return . += "There [src.amount_left == 1 ? "is" : "are"] [src.amount_left][ammo_type.material && istype(ammo_type.material, /datum/material/metal/silver) ? " silver " : " "]bullet\s left!"
 
 /obj/item/ammo/bullets/derringer
 	sname = ".41 RF"
@@ -447,6 +459,9 @@
 	ammo_type = new/datum/projectile/bullet/nine_mm_NATO
 	caliber = 0.355
 
+/obj/item/ammo/bullets/nine_mm_NATO/boomerang //empty clip for the clock_188/boomerang
+	amount_left = 0
+
 /obj/item/ammo/bullets/a12
 	sname = "12ga Buckshot"
 	name = "12ga buckshot ammo box"
@@ -504,18 +519,6 @@
 	sname = "12ga Rubber Slug"
 	name = "12ga rubber slugs"
 	ammo_type = new/datum/projectile/bullet/abg
-	icon_state = "bg"
-	amount_left = 8.0
-	max_amount = 8.0
-	caliber = 0.72
-	icon_dynamic = 0
-	icon_empty = "bg-0"
-	sound_load = 'sound/weapons/gunload_click.ogg'
-
-/obj/item/ammo/bullets/pbr
-	sname = "12ga Plastic Baton Rounds"
-	name = "12ga plastic baton rounds"
-	ammo_type = new/datum/projectile/bullet/pbr
 	icon_state = "bg"
 	amount_left = 8.0
 	max_amount = 8.0
@@ -617,11 +620,11 @@
 	name = "12ga flares"
 	amount_left = 8
 	max_amount = 8
-	icon_state = "12"
+	icon_state = "flare"
 	ammo_type = new/datum/projectile/bullet/flare
 	caliber = 0.72
 	icon_dynamic = 0
-	icon_empty = "12-0"
+	icon_empty = "flare-0"
 
 	single
 		amount_left = 1
@@ -636,7 +639,7 @@
 	icon_state = "40mmR"
 	ammo_type = new/datum/projectile/bullet/cannon
 	caliber = 0.787
-	w_class = 2
+	w_class = W_CLASS_SMALL
 	icon_dynamic = 1
 	icon_empty = "40mmR-0"
 	sound_load = 'sound/weapons/gunload_heavy.ogg'
@@ -653,7 +656,7 @@
 	icon_state = "40mmR"
 	ammo_type = new/datum/projectile/bullet/autocannon
 	caliber = 1.57
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	icon_dynamic = 0
 	icon_empty = "40mmR-0"
 	sound_load = 'sound/weapons/gunload_heavy.ogg'
@@ -680,10 +683,10 @@
 	icon_state = "40mmR"
 	ammo_type = new/datum/projectile/bullet/grenade_round/
 	caliber = 1.57
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	icon_dynamic = 0
 	icon_empty = "40mmR-0"
-	sound_load = 'sound/weapons/gunload_heavy.ogg'
+	sound_load = 'sound/weapons/gunload_40mm.ogg'
 
 	explosive
 		desc = "High Explosive Dual Purpose grenade rounds compatible with grenade launchers. Effective against infantry and armour."
@@ -705,14 +708,40 @@
 	icon_state = "40mmB"
 	ammo_type = new/datum/projectile/bullet/smoke
 	caliber = 1.57
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	icon_dynamic = 0
 	icon_empty = "40mmB-0"
-	sound_load = 'sound/weapons/gunload_heavy.ogg'
+	sound_load = 'sound/weapons/gunload_40mm.ogg'
 
 	single
 		amount_left = 1
 		max_amount = 1
+
+/obj/item/ammo/bullets/marker
+	sname = "40mm Paint Marker Rounds"
+	name = "40mm paint marker rounds"
+	ammo_type = new/datum/projectile/bullet/marker
+	amount_left = 5
+	max_amount = 5
+	icon_state = "40mmR"
+	caliber = 1.57
+	w_class = W_CLASS_NORMAL
+	icon_dynamic = 0
+	icon_empty = "40mmR-0"
+	sound_load = 'sound/weapons/gunload_40mm.ogg'
+
+/obj/item/ammo/bullets/pbr
+	sname = "40mm Plastic Baton Rounds"
+	name = "40mm plastic baton rounds"
+	ammo_type = new/datum/projectile/bullet/pbr
+	amount_left = 5
+	max_amount = 5
+	icon_state = "40mmB"
+	caliber = 1.57
+	w_class = W_CLASS_NORMAL
+	icon_dynamic = 0
+	icon_empty = "40mmB-0"
+	sound_load = 'sound/weapons/gunload_40mm.ogg'
 
 //basically an internal object for converting hand-grenades into shells, but can be spawned independently.
 /obj/item/ammo/bullets/grenade_shell
@@ -724,12 +753,15 @@
 	icon_state = "paintballr-4"
 	ammo_type = new/datum/projectile/bullet/grenade_shell
 	caliber = 1.57
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	icon_dynamic = 0
 	icon_empty = "paintballb-4"
 	delete_on_reload = 0 //deleting it before the shell can be fired breaks things
-	sound_load = 'sound/weapons/gunload_heavy.ogg'
+	sound_load = 'sound/weapons/gunload_40mm.ogg'
 	force_new_current_projectile = 1
+
+	rigil
+		max_amount = 4
 
 	attackby(obj/item/W as obj, mob/living/user as mob)
 		var/datum/projectile/bullet/grenade_shell/AMMO = src.ammo_type
@@ -744,6 +776,9 @@
 				src.update_icon()
 				boutput(user, "You load [W] into the [src].")
 				return
+			else if(src.amount_left < src.max_amount && W.type == AMMO.get_nade()?.type)
+				src.amount_left++
+				boutput(user, "You load [W] into the [src].")
 			else
 				boutput(user, "<span class='alert'>For <i>some reason</i>, you are unable to place [W] into an already filled chamber.</span>")
 				return
@@ -755,9 +790,10 @@
 		if(!user)
 			return
 		if (src.loc == user && AMMO.has_grenade != 0)
-			user.put_in_hand_or_drop(AMMO.get_nade())
+			for(var/i in 1 to amount_left)
+				user.put_in_hand_or_drop(SEMI_DEEP_COPY(AMMO.get_nade()))
 			AMMO.unload_nade()
-			boutput(user, "You pry the grenade out of [src].")
+			boutput(user, "You pry the grenade[amount_left>1?"s":""] out of [src].")
 			src.add_fingerprint(user)
 			src.update_icon()
 			return
@@ -771,7 +807,13 @@
 		else
 			src.icon_state = "40mmR-0"
 
-
+	after_unload(mob/user)
+		var/datum/projectile/bullet/grenade_shell/AMMO = src.ammo_type
+		if(AMMO.has_grenade && src.delete_on_reload)
+			for(var/i in 1 to amount_left)
+				user.put_in_hand_or_drop(SEMI_DEEP_COPY(AMMO.get_nade()))
+			AMMO.unload_nade()
+			qdel(src)
 
 // Ported from old, non-gun RPG-7 object class (Convair880).
 /obj/item/ammo/bullets/rpg
@@ -783,7 +825,7 @@
 	icon_state = "rpg_rocket"
 	ammo_type = new /datum/projectile/bullet/rpg
 	caliber = 1.58
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	delete_on_reload = 1
 	sound_load = 'sound/weapons/gunload_heavy.ogg'
 
@@ -808,6 +850,14 @@
 	ammo_type = new/datum/projectile/bullet/bullet_9mm
 	caliber = 0.355
 
+	five_shots
+		amount_left = 5.0
+
+	smartgun
+		name = "9mm smartgun magazine"
+		amount_left = 24.0
+		max_amount = 24.0
+		ammo_type = new/datum/projectile/bullet/bullet_9mm/smartgun
 	smg
 		name = "9mm SMG magazine"
 		amount_left = 30.0
@@ -844,54 +894,45 @@
 	g_amt = 20000
 	var/charge = 100.0
 	var/max_charge = 100.0
-	module_research = list("weapons" = 1, "energy" = 5, "miniaturization" = 5)
-	module_research_type = /obj/item/ammo/power_cell
+	var/recharge_rate = 0
 	var/sound_load = 'sound/weapons/gunload_click.ogg'
 	var/unusualCell = 0
 
-	onMaterialChanged()
-		..()
-		if(istype(src.material))
-			if(src.material.hasProperty("electrical"))
-				max_charge = round(material.getProperty("electrical") ** 1.33)
-			else
-				max_charge =  40
-
-		charge = max_charge
-		return
-
 	New()
 		..()
-		update_icon()
+		AddComponent(/datum/component/power_cell, max_charge, charge, recharge_rate)
+		RegisterSignal(src, COMSIG_UPDATE_ICON, .proc/update_icon)
 		desc = "A power cell that holds a max of [src.max_charge]PU. Can be inserted into any energy gun, even tasers!"
+		update_icon()
 
 	disposing()
-		if (src in processing_items)
-			processing_items.Remove(src)
+		processing_items -= src
 		..()
 
 	emp_act()
-		src.use(INFINITY)
+		SEND_SIGNAL(src, COMSIG_CELL_USE, INFINITY)
 		return
 
 	update_icon()
-		inventory_counter.update_percent(src.charge, src.max_charge)
 		if (src.artifact || src.unusualCell) return
 		overlays = null
-		var/ratio = src.charge / src.max_charge
-		ratio = round(ratio, 0.20) * 100
-		switch(ratio)
-			if(20)
-				overlays += "cell_1/5"
-			if(40)
-				overlays += "cell_2/5"
-			if(60)
-				overlays += "cell_3/5"
-			if(80)
-				overlays += "cell_4/5"
-			if(100)
-				overlays += "cell_5/5"
-		return
+		var/list/ret = list()
+		if(SEND_SIGNAL(src, COMSIG_CELL_CHECK_CHARGE, ret) & CELL_RETURNED_LIST)
+			var/ratio = min(1, ret["charge"] / ret["max_charge"])
+			ratio = round(ratio, 0.20) * 100
+			inventory_counter.update_percent(ret["charge"], ret["max_charge"])
+			switch(ratio)
+				if(20)
+					overlays += "cell_1/5"
+				if(40)
+					overlays += "cell_2/5"
+				if(60)
+					overlays += "cell_3/5"
+				if(80)
+					overlays += "cell_4/5"
+				if(100)
+					overlays += "cell_5/5"
+			return
 
 	examine()
 		if (src.artifact)
@@ -899,67 +940,10 @@
 		. = ..()
 		if (src.unusualCell)
 			return
-		. += "There are [src.charge]/[src.max_charge] PU left!"
+		var/list/ret = list()
+		if(SEND_SIGNAL(src, COMSIG_CELL_CHECK_CHARGE, ret) & CELL_RETURNED_LIST)
+			. += "There are [ret["charge"]]/[ret["max_charge"]] PU left!"
 
-	use(var/amt = 0)
-		if (src.charge <= 0)
-			src.charge = 0
-			return 0
-		else
-			if (amt > 0)
-				src.charge = max(0, src.charge - amt)
-				src.update_icon()
-				return 1
-			else
-				return 0
-
-	attackby(obj/attacking_item as obj, mob/attacker as mob)
-		if(istype(attacking_item, /obj/item/gun/energy))
-			var/obj/item/ammo/power_cell/pcell = src
-			attacking_item.attackby(pcell, attacker)
-		else return ..()
-
-	swap(var/obj/item/gun/energy/E)
-		if(!istype(E.cell,/obj/item/ammo/power_cell))
-			return 0
-		var/obj/item/ammo/power_cell/swapped_cell = E.cell
-		var/mob/living/M = src.loc
-		var/atom/old_loc = src.loc
-
-		if(istype(M) && src == M.equipped())
-			usr.u_equip(src)
-
-		src.set_loc(E)
-		E.cell = src
-
-		if(istype(old_loc, /obj/item/storage))
-			swapped_cell.set_loc(old_loc)
-			var/obj/item/storage/cell_container = old_loc
-			cell_container.hud.remove_item(src)
-			cell_container.hud.update()
-		else
-			usr.put_in_hand_or_drop(swapped_cell)
-
-		src.add_fingerprint(usr)
-
-		E.update_icon()
-		swapped_cell.update_icon()
-		src.update_icon()
-
-		playsound(get_turf(src), sound_load, 50, 1)
-		return 1
-
-	proc/charge(var/amt = 0)
-		if (src.charge >= src.max_charge)
-			src.charge = src.max_charge
-			return 0
-		else
-			if (amt > 0)
-				src.charge = min(src.charge + amt, src.max_charge)
-				src.update_icon()
-				return src.charge < src.max_charge //if we're fully charged, let other things know immediately
-			else
-				return 0
 
 /obj/item/ammo/power_cell/med_power
 	name = "Power Cell - 200"
@@ -1000,41 +984,9 @@
 	g_amt = 38000
 	charge = 40.0
 	max_charge = 40.0
-	var/cycle = 0 //Recharge every other tick.
-	var/recharge_rate = 5.0
-
-	onMaterialChanged()
-		..()
-		if(istype(src.material))
-			if(src.material.hasProperty("radioactive"))
-				var/rate = ((src.material.getProperty("radioactive") / 10) / 2.5) //55(cerenkite) should give around 2.2, slightly less than a slow charge cell.
-				recharge_rate = rate
-			else
-				recharge_rate = 0
-		return
-
-	New()
-		if (!(src in processing_items))
-			processing_items.Add(src)
-		..()
-		return
-
-	charge(var/amt = 0)
-		if (src.charge < src.max_charge)
-			if (!(src in processing_items))
-				processing_items.Add(src)
-		return ..()
-
-	use(var/amt = 0)
-		if (!(src in processing_items))
-			processing_items.Add(src)
-		return ..()
+	recharge_rate = 5.0
 
 	process()
-		src.cycle = !src.cycle // Charge every four seconds.
-		if (src.cycle)
-			return
-
 		if(src.material)
 			if(src.material.hasProperty("stability"))
 				if(src.material.getProperty("stability") <= 50)
@@ -1043,15 +995,28 @@
 						explosion_new(src, T, 1)
 						src.visible_message("<span class='alert'>\the [src] detonates.</span>")
 
-		src.charge = min(charge + recharge_rate, max_charge)
-		src.update_icon()
-		if (src.charge >= src.max_charge)
-			processing_items.Remove(src)
-		return
 
 /obj/item/ammo/power_cell/self_charging/custom
 	name = "Power Cell"
 	desc = "A custom-made power cell."
+
+	onMaterialChanged()
+		..()
+		if(istype(src.material))
+			if(src.material.hasProperty("electrical"))
+				max_charge = round(material.getProperty("electrical") ** 1.33)
+			else
+				max_charge =  40
+
+			recharge_rate = 0
+			if(src.material.hasProperty("radioactive"))
+				recharge_rate += ((src.material.getProperty("radioactive") / 10) / 2.5) //55(cerenkite) should give around 2.2, slightly less than a slow charge cell.
+			if(src.material.hasProperty("n_radioactive"))
+				recharge_rate += ((src.material.getProperty("n_radioactive") / 10) / 2)
+
+		charge = max_charge
+		AddComponent(/datum/component/power_cell, max_charge, charge, recharge_rate)
+		return
 
 /obj/item/ammo/power_cell/self_charging/slowcharge
 	name = "Power Cell - Atomic Slowcharge"
@@ -1067,8 +1032,7 @@
 	g_amt = 38000
 	charge = 100.0
 	max_charge = 100.0
-	cycle = 0
-	recharge_rate = 5.0
+	recharge_rate = 7.5
 
 /obj/item/ammo/power_cell/self_charging/ntso_baton
 	name = "Power Cell - NTSO Stun Baton"
@@ -1077,7 +1041,24 @@
 	icon_state = "recharger_cell"
 	charge = 150.0
 	max_charge = 150.0
-	cycle = 0
+	recharge_rate = 7.5
+
+/obj/item/ammo/power_cell/self_charging/ntso_signifer
+	name = "Power Cell - NTSO D49"
+	desc = "A self-contained radioisotope power cell that slowly recharges an internal capacitor. Holds 100PU."
+	icon = 'icons/obj/items/ammo.dmi'
+	icon_state = "recharger_cell"
+	charge = 250.0
+	max_charge = 250.0
+	recharge_rate = 6
+
+/obj/item/ammo/power_cell/self_charging/medium
+	name = "Power Cell - Hicap RTG"
+	desc = "A self-contained radioisotope power cell that slowly recharges an internal capacitor. Holds 100PU."
+	icon = 'icons/obj/items/ammo.dmi'
+	icon_state = "recharger_cell"
+	charge = 200
+	max_charge = 200
 	recharge_rate = 7.5
 
 /obj/item/ammo/power_cell/self_charging/big
@@ -1089,7 +1070,6 @@
 	g_amt = 38000
 	charge = 400.0
 	max_charge = 400.0
-	cycle = 0
 	recharge_rate = 40.0
 
 /obj/item/ammo/power_cell/self_charging/lawbringer
@@ -1101,7 +1081,6 @@
 	g_amt = 38000
 	charge = 300.0
 	max_charge = 300.0
-	cycle = 0
 	recharge_rate = 10.0
 
 /obj/item/ammo/power_cell/self_charging/howitzer
@@ -1128,7 +1107,7 @@
 	icon_state = "regularrocket"
 	ammo_type = new /datum/projectile/bullet/antisingularity
 	caliber = 1.12
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	delete_on_reload = 1
 	sound_load = 'sound/weapons/gunload_heavy.ogg'
 
@@ -1141,7 +1120,7 @@
 	icon_state = "mininuke"
 	ammo_type = new /datum/projectile/bullet/mininuke
 	caliber = 1.12
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 	delete_on_reload = 1
 	sound_load = 'sound/weapons/gunload_heavy.ogg'
 
@@ -1153,7 +1132,7 @@
 	max_amount = 6
 	icon_state = "gungun"
 	throwforce = 2
-	w_class = 1.0
+	w_class = W_CLASS_TINY
 	throw_speed = 4
 	throw_range = 20
 	ammo_type = new /datum/projectile/special/spawner/gun
@@ -1170,7 +1149,7 @@
 	max_amount = 1
 	ammo_type = new/datum/projectile/special/meowitzer
 	caliber = 20
-	w_class = 3
+	w_class = W_CLASS_NORMAL
 
 
 /obj/item/ammo/bullets/meowitzer/inert
@@ -1179,4 +1158,53 @@
 	desc = "A box containg a single inert meowitzer. It appears to be softly purring. Wait is that a cat?"
 	ammo_type = new/datum/projectile/special/meowitzer/inert
 
+/obj/item/ammo/bullets/foamdarts
+	sname = "foam darts"
+	name = "foam dart box"
+	icon_state = "foamdarts"
+	icon_empty = "foamdarts-0"
+	amount_left = 20
+	max_amount = 20
+	caliber = 0.393
+	ammo_type = new/datum/projectile/bullet/foamdart
 
+/obj/item/ammo/bullets/foamdarts/ten
+	amount_left = 10
+	max_amount = 10
+
+/datum/action/bar/icon/powercellswap
+	duration = 1 SECOND
+	interrupt_flags = INTERRUPT_STUNNED | INTERRUPT_ATTACKED
+	id = "powercellswap"
+	icon = 'icons/obj/items/ammo.dmi'
+	icon_state = "power_cell"
+	var/mob/living/user
+	var/obj/item/ammo/power_cell/cell
+	var/obj/item/gun/energy/gun
+
+	New(User, Cell, Gun)
+		user = User
+		cell = Cell
+		gun = Gun
+		..()
+
+	onUpdate()
+		..()
+		if(get_dist(user, gun) > 1 || user == null || cell == null || gun == null || get_turf(gun) != get_turf(cell) )
+			interrupt(INTERRUPT_ALWAYS)
+			return
+
+	onStart()
+		..()
+		if(get_dist(user, gun) > 1 || user == null || cell == null || gun == null || get_turf(gun) != get_turf(cell) )
+			interrupt(INTERRUPT_ALWAYS)
+			return
+		return
+
+	onEnd()
+		..()
+		if(get_dist(user, gun) > 1 || user == null || cell == null || gun == null || get_turf(gun) != get_turf(cell) )
+			..()
+			interrupt(INTERRUPT_ALWAYS)
+			return
+		cell.swap(gun,user)

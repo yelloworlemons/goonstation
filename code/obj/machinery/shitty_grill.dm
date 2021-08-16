@@ -3,7 +3,7 @@
 	desc = "Is that a space heater? That doesn't look safe at all!"
 	icon = 'icons/obj/kitchen.dmi'
 	icon_state = "shittygrill_off"
-	anchored = 1
+	anchored = 0
 	density = 1
 	flags = NOSPLASH
 	mats = 20
@@ -13,18 +13,17 @@
 	var/grilltemp = 35 + T0C
 	var/max_wclass = 3
 	var/on = 0
+	var/movable = 1
 	var/datum/light/light
-	var/datum/particleSystem/barrelSmoke/particles
+	var/datum/particleSystem/barrelSmoke/smoke_part
 
 	New()
 		..()
 		UnsubscribeProcess()
-		var/datum/reagents/R = new/datum/reagents(50)
-		reagents = R
-		R.my_atom = src
+		src.create_reagents(50)
 
-		R.add_reagent("charcoal", 25)
-		R.set_reagent_temp(src.grilltemp)
+		reagents.add_reagent("charcoal", 25)
+		reagents.set_reagent_temp(src.grilltemp)
 		light = new /datum/light/point
 		light.attach(src)
 		light.set_brightness(1)
@@ -32,8 +31,13 @@
 
 
 	attackby(obj/item/W as obj, mob/user as mob)
+		if(movable && istool(W, TOOL_SCREWING | TOOL_WRENCHING))
+			user.visible_message("<b>[user]</b> [anchored ? "unbolts the [src] from" : "secures the [src] to"] the floor.")
+			playsound(src.loc, "sound/items/Screwdriver.ogg", 80, 1)
+			src.anchored = !src.anchored
+			return
 		if (isghostdrone(user) || isAI(user))
-			boutput(usr, "<span class='alert'>The [src] refuses to interface with you, as you are not a bus driver!</span>")
+			boutput(user, "<span class='alert'>The [src] refuses to interface with you, as you are not a bus driver!</span>")
 			return
 		if (src.grillitem)
 			boutput(user, "<span class='alert'>There is already something on the grill!</span>")
@@ -73,7 +77,7 @@
 			else
 				logTheThing("combat", user, null, "pours chemicals [log_reagents(W)] into the [src] at [log_loc(src)].") // Logging for the deep fryer (Convair880).
 				src.visible_message("<span class='notice'>[user] pours [W:amount_per_transfer_from_this] units of [W]'s contents into [src].</span>")
-				playsound(src.loc, "sound/impact_sounds/Liquid_Slosh_1.ogg", 100, 1)
+				playsound(src.loc, "sound/impact_sounds/Liquid_Slosh_1.ogg", 25, 1)
 				W.reagents.trans_to(src, W:amount_per_transfer_from_this)
 				if (!W.reagents.total_volume) boutput(user, "<span class='alert'><b>[W] is now empty.</b></span>")
 
@@ -136,7 +140,7 @@
 
 	attack_hand(mob/user as mob)
 		if (isghostdrone(user))
-			boutput(usr, "<span class='alert'>The [src] refuses to interface with you, as you are not a bus driver!</span>")
+			boutput(user, "<span class='alert'>The [src] refuses to interface with you, as you are not a bus driver!</span>")
 			return
 
 		if (!src.grillitem)
@@ -180,11 +184,11 @@
 				UnsubscribeProcess()
 
 		if (src.grilltemp >= 200 + T0C)
-			if (!particles)
-				particles = particleMaster.SpawnSystem(new /datum/particleSystem/barrelSmoke(src))
+			if (!smoke_part)
+				smoke_part = particleMaster.SpawnSystem(new /datum/particleSystem/barrelSmoke(src))
 		else
 			particleMaster.RemoveSystem(/datum/particleSystem/barrelSmoke, src)
-			particles = null
+			smoke_part = null
 
 		if (src.grilltemp >= src.reagents.total_temperature)
 			src.reagents.set_reagent_temp(src.reagents.total_temperature + 5)
@@ -195,9 +199,7 @@
 */
 		if(src.grillitem)
 			if (!src.grillitem.reagents)
-				var/datum/reagents/R = new/datum/reagents(50)
-				src.grillitem.reagents = R
-				R.my_atom = src.grillitem
+				src.grillitem.create_reagents(50)
 
 
 			src.reagents.trans_to(src.grillitem, 2)
@@ -246,16 +248,14 @@
 		if (src.cooktime >= 60)
 			if (ismob(src.grillitem))
 				var/mob/M = src.grillitem
-				M.ghostize()
+				INVOKE_ASYNC(M, /mob.proc/ghostize)
 			else
 				for (var/mob/M in src.grillitem)
 					M.ghostize()
 			qdel(src.grillitem)
 			src.grillitem = new /obj/item/reagent_containers/food/snacks/yuckburn (src)
 			if (!src.grillitem.reagents)
-				var/datum/reagents/R = new/datum/reagents(50)
-				src.grillitem.reagents = R
-				R.my_atom = src.grillitem
+				src.grillitem.create_reagents(50)
 
 			src.grillitem.reagents.add_reagent("charcoal", 50)
 			shittysteak.desc = "A heavily grilled...something.  It's mostly ash now."

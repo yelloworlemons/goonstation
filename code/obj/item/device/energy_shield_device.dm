@@ -7,7 +7,7 @@
 	throwforce = 5.0
 	throw_speed = 1
 	throw_range = 5
-	w_class = 2.0
+	w_class = W_CLASS_SMALL
 	mats = 10
 	var/active = 0
 	var/protection = 25
@@ -15,6 +15,7 @@
 	var/image/shield_overlay = null
 
 	New()
+		..()
 		work()
 
 	dropped(mob/user as mob)
@@ -77,4 +78,7 @@
 			SPAWN_DBG(1 SECOND) work()
 
 		can_use()
-			if(!user || !ismob(loc) || user != loc) return 0
+			if(!user || !ismob(loc) || user != loc)
+				return 0
+			else
+				return 1

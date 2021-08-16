@@ -5,7 +5,7 @@
 			owner.handle_organs(get_multiplier())
 
 		//the master vore loop
-		if (owner.stomach_contents && owner.stomach_contents.len)
+		if (owner.stomach_contents && length(owner.stomach_contents))
 			SPAWN_DBG(0)
 				for (var/mob/M in owner.stomach_contents)
 					if (M.loc != owner)
@@ -62,8 +62,8 @@
 	else if (oH.brain.loc != src)
 		oH.brain = null
 
-	if (!oH.heart && !src.nodamage)
-		if (!ischangeling(src))
+	if (!oH.heart)
+		if (!ischangeling(src) && !src.nodamage)
 			if (src.get_oxygen_deprivation())
 				src.take_brain_damage(3)
 			else if (prob(10))

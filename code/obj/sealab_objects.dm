@@ -13,7 +13,7 @@
 	name = "seashell"
 	icon = 'icons/obj/sealab_objects.dmi'
 	desc = "Hey, you remember collecting these things as a kid! Wait - you didn't grow up here!"
-	w_class = 1.0
+	w_class = W_CLASS_TINY
 	rand_pos = 1
 	var/database_id = null
 
@@ -22,10 +22,8 @@
 		var/my_seashell = rand(1,14)
 		src.icon_state = "shell_[my_seashell]"
 		src.database_id = "seashell_[my_seashell]"
-		var/datum/reagents/R = new/datum/reagents(10)
-		src.reagents = R
-		R.my_atom = src
-		R.add_reagent("calcium_carbonate", 10)
+		src.create_reagents(10)
+		reagents.add_reagent("calcium_carbonate", 10)
 
 
 //PLANTS
@@ -51,9 +49,10 @@
 			src.pixel_y = rand(-8,8)
 
 	attackby(obj/item/W, mob/user)
-		if (drop_type && issnippingtool(W))
-			var/obj/item/drop = new drop_type
-			drop.set_loc(src.loc)
+		if (issnippingtool(W))
+			if(drop_type)
+				var/obj/item/drop = new drop_type
+				drop.set_loc(src.loc)
 			src.visible_message("<span class='alert'>[user] cuts down [src].</span>")
 			qdel(src)
 		..()
@@ -79,7 +78,7 @@
 					has_fluid_move_gear = 1
 
 		if (!has_fluid_move_gear)
-			A.setStatus("slowed", 5, optional = 4)
+			A.setStatus("slowed", 0.5 SECONDS, optional = 4)
 
 		if (get_dir(src,A) & SOUTH || pixel_y > 0) //If we approach from underneath, fudge the layer so the drawing order doesn't break perspective
 			src.layer = 3.9

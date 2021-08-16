@@ -33,24 +33,20 @@
 			M.visible_message("<span class='alert'>You seem to attack [target]!</span>")
 			return 1
 
-		if (M.invisibility > 0)
-			for (var/obj/item/cloaking_device/I in M)
-				if (I.active)
-					I.deactivate(M)
-					M.visible_message("<span class='notice'><b>[M]'s cloak is disrupted!</b></span>")
+		SEND_SIGNAL(M, COMSIG_CLOAKING_DEVICE_DEACTIVATE)
 
 		var/turf/T = get_turf(M)
 		if (T && isturf(T) && target && isturf(target.loc))
 			playsound(M.loc, "swing_hit", 50, 1)
 
-			SPAWN_DBG (0)
+			SPAWN_DBG(0)
 				for (var/i = 0, i < 4, i++)
-					M.dir = turn(M.dir, 90)
+					M.set_dir(turn(M.dir, 90))
 
 				M.set_loc(target.loc)
-				SPAWN_DBG (4)
-					if (M && (T && isturf(T) && get_dist(M, T) <= 1))
-						M.set_loc(T)
+				sleep(4)
+				if (M && (T && isturf(T) && get_dist(M, T) <= 1))
+					M.set_loc(T)
 
 			M.visible_message("<span class='alert'><b>[M] [pick_string("wrestling_belt.txt", "strike")] [target]!</b></span>")
 			playsound(M.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)

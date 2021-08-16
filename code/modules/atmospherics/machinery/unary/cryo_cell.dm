@@ -1,5 +1,5 @@
 /obj/machinery/atmospherics/unary/cryo_cell
-	name = "cryo cell"
+	name = "cryogenic healing pod"
 	icon = 'icons/obj/Cryogenic2.dmi'
 	icon_state = "celltop-P"
 	density = 1
@@ -66,10 +66,13 @@
 			if(!isdead(occupant))
 				if (!ishuman(occupant))
 					src.go_out() // stop turning into cyborgs thanks
-				if (occupant.health < 100) process_occupant()
+				if (occupant.health < occupant.max_health || occupant.bioHolder.HasEffect("premature_clone"))
+
+					process_occupant()
 				else
-					src.go_out()
-					playsound(src.loc, "sound/machines/ding.ogg", 50, 1)
+					if(occupant.mind)
+						src.go_out()
+						playsound(src.loc, "sound/machines/ding.ogg", 50, 1)
 
 		if(air_contents)
 			ARCHIVED(temperature) = air_contents.temperature
@@ -104,7 +107,7 @@
 			SPAWN_DBG(user.combat_click_delay + 2)
 				if (can_operate(user,target))
 					if (istype(user.equipped(), /obj/item/grab))
-						src.attackby(user.equipped(), user)
+						src.Attackby(user.equipped(), user)
 		return
 
 	proc/can_operate(var/mob/M, var/mob/living/target)
@@ -136,14 +139,14 @@
 		src.add_dialog(user)
 		var/temp_text = ""
 		if(air_contents.temperature > T0C)
-			temp_text = "<FONT color=red>[air_contents.temperature]</FONT>"
+			temp_text = "<FONT color=red>[air_contents.temperature - T0C]</FONT>"
 		else if(air_contents.temperature > 170)
-			temp_text = "<FONT color=black>[air_contents.temperature]</FONT>"
+			temp_text = "<FONT color=black>[air_contents.temperature - T0C]</FONT>"
 		else
-			temp_text = "<FONT color=blue>[air_contents.temperature]</FONT>"
+			temp_text = "<FONT color=blue>[air_contents.temperature - T0C]</FONT>"
 
 		var/dat = "<B>Cryo cell control system</B><BR>"
-		dat += "<B>Current cell temperature:</B> [temp_text]K<BR>"
+		dat += "<B>Current cell temperature:</B> [temp_text]&deg;C<BR>"
 		dat += "<B>Eject Occupant:</B> [src.occupant ? "<A href='?src=\ref[src];eject_occupant=1'>Eject</A>" : "Eject"]<BR>"
 		dat += "<B>Cryo status:</B> [src.on ? "<A href='?src=\ref[src];start=1'>Off</A> <B>On</B>" : "<B>Off</B> <A href='?src=\ref[src];start=1'>On</A>"]<BR>"
 		dat += "[draw_beaker_text()]<BR>"
@@ -218,7 +221,7 @@
 			logTheThing("combat", user, null, "adds a beaker [log_reagents(G)] to [src] at [log_loc(src)].") // Rigging cryo is advertised in the 'Tip of the Day' list (Convair880).
 			src.add_fingerprint(user)
 		else if(istype(G, /obj/item/grab))
-			push_in(G)
+			push_in(G, user)
 		else if (istype(G, /obj/item/reagent_containers/syringe))
 			//this is in syringe.dm
 			logTheThing("combat", user, null, "injects [log_reagents(G)] to [src] at [log_loc(src)].")
@@ -323,7 +326,7 @@
 				return
 			occupant.bodytemperature += 50*(air_contents.temperature - occupant.bodytemperature)*current_heat_capacity/(current_heat_capacity + HEAT_CAPACITY(air_contents))
 			occupant.bodytemperature = max(occupant.bodytemperature, air_contents.temperature) // this is so ugly i'm sorry for doing it i'll fix it later i promise
-			occupant.changeStatus("burning",-100)
+			occupant.changeStatus("burning", -10 SECONDS)
 			var/mob/living/carbon/human/H = 0
 			if (ishuman(occupant))
 				H = occupant

@@ -1,6 +1,6 @@
-
-// Inedible Produce
-
+#define HERB_SMOKE_TRANSFER_HARDCAP 15
+#define HERB_HOTBOX_MULTIPLIER 1.2
+/// Inedible Produce
 /obj/item/plant/
 	name = "plant"
 	var/crop_suffix = ""
@@ -17,13 +17,10 @@
 
 	proc/make_reagents()
 		if (!src.reagents)
-			var/datum/reagents/R = new/datum/reagents(100)
-			reagents = R
-			R.my_atom = src
+			src.create_reagents(100)
 
 	unpooled()
-		if(src.reagents)
-			src.reagents.clear_reagents()
+		src.reagents?.clear_reagents()
 		..()
 		make_reagents()
 		// hopefully prevent issues of "jumbo perfect large incredible nice perfect superb strawberry"
@@ -39,6 +36,7 @@
 	burn_point = 330
 	burn_output = 800
 	burn_possible = 2
+	item_function_flags = COLD_BURN
 	crop_suffix	= " leaf"
 
 	attackby(obj/item/W as obj, mob/user as mob)
@@ -57,8 +55,7 @@
 			pool (W)
 			pool (src)
 			user.put_in_hand_or_drop(P)
-			if (prob(20))
-				JOB_XP(user, "Botanist", 2)
+			JOB_XP(user, "Botanist", 1)
 
 		else if (istype(W, /obj/item/bluntwrap))
 			boutput(user, "<span class='alert'>You roll [src] up in [W] and make a fat doink.</span>")
@@ -76,11 +73,17 @@
 			qdel(W)
 			pool(src)
 			user.put_in_hand_or_drop(doink)
-			if (prob(20))
-				JOB_XP(user, "Botanist", 3)
+			JOB_XP(user, "Botanist", 2)
 
 	combust_ended()
-		smoke_reaction(src.reagents, 1, get_turf(src), do_sfx = 0)
+		var/turf/T = get_turf(src)
+		if (T.allow_unrestricted_hotbox) // traitor hotboxing
+			src.reagents.maximum_volume *= HERB_HOTBOX_MULTIPLIER
+			for (var/reagent_id in reagents.reagent_list)
+				src.reagents.add_reagent(reagent_id, (src.reagents.get_reagent_amount(reagent_id) * (HERB_HOTBOX_MULTIPLIER - 1)))
+			smoke_reaction(src.reagents, 1, get_turf(src), do_sfx = 0)
+		else
+			smoke_reaction(src.reagents.remove_any_to(HERB_SMOKE_TRANSFER_HARDCAP), 1, get_turf(src), do_sfx = 0)
 		..()
 
 	proc/build_name(obj/item/W)
@@ -92,18 +95,14 @@
 	icon_state = "cannabisleaf"
 	brewable = 1
 	brew_result = list("THC", "CBD")
-	module_research = list("vice" = 10)
-	module_research_type = /obj/item/plant/herb/cannabis
 	contraband = 1
-	w_class = 1
+	w_class = W_CLASS_TINY
 
 /obj/item/plant/herb/cannabis/spawnable
 	make_reagents()
-		var/datum/reagents/R = new/datum/reagents(85)
-		reagents = R
-		R.my_atom = src
-		R.add_reagent("THC", 60)
-		R.add_reagent("CBD", 20)
+		src.create_reagents(85)
+		reagents.add_reagent("THC", 60)
+		reagents.add_reagent("CBD", 20)
 
 /obj/item/plant/herb/cannabis/mega
 	name = "cannabis leaf"
@@ -114,11 +113,9 @@
 
 /obj/item/plant/herb/cannabis/mega/spawnable
 	make_reagents()
-		var/datum/reagents/R = new/datum/reagents(85)
-		reagents = R
-		R.my_atom = src
-		R.add_reagent("THC", 40)
-		R.add_reagent("LSD", 40)
+		src.create_reagents(85)
+		reagents.add_reagent("THC", 40)
+		reagents.add_reagent("LSD", 40)
 
 /obj/item/plant/herb/cannabis/black
 	name = "cannabis leaf"
@@ -129,11 +126,9 @@
 
 /obj/item/plant/herb/cannabis/black/spawnable
 	make_reagents()
-		var/datum/reagents/R = new/datum/reagents(85)
-		reagents = R
-		R.my_atom = src
-		R.add_reagent("THC", 40)
-		R.add_reagent("cyanide", 40)
+		src.create_reagents(85)
+		reagents.add_reagent("THC", 40)
+		reagents.add_reagent("cyanide", 40)
 
 /obj/item/plant/herb/cannabis/white
 	name = "cannabis leaf"
@@ -144,11 +139,9 @@
 
 /obj/item/plant/herb/cannabis/white/spawnable
 	make_reagents()
-		var/datum/reagents/R = new/datum/reagents(85)
-		reagents = R
-		R.my_atom = src
-		R.add_reagent("THC", 40)
-		R.add_reagent("omnizine", 40)
+		src.create_reagents(85)
+		reagents.add_reagent("THC", 40)
+		reagents.add_reagent("omnizine", 40)
 
 /obj/item/plant/herb/cannabis/omega
 	name = "glowing cannabis leaf"
@@ -160,29 +153,27 @@
 
 /obj/item/plant/herb/cannabis/omega/spawnable
 	make_reagents()
-		var/datum/reagents/R = new/datum/reagents(800)
-		reagents = R
-		R.my_atom = src
-		R.add_reagent("THC", 40)
-		R.add_reagent("LSD", 40)
-		R.add_reagent("suicider", 40)
-		R.add_reagent("space_drugs", 40)
-		R.add_reagent("mercury", 40)
-		R.add_reagent("lithium", 40)
-		R.add_reagent("atropine", 40)
-		R.add_reagent("haloperidol", 40)
-		R.add_reagent("methamphetamine", 40)
-		R.add_reagent("THC", 40)
-		R.add_reagent("capsaicin", 40)
-		R.add_reagent("psilocybin", 40)
-		R.add_reagent("hairgrownium", 40)
-		R.add_reagent("ectoplasm", 40)
-		R.add_reagent("bathsalts", 40)
-		R.add_reagent("itching", 40)
-		R.add_reagent("crank", 40)
-		R.add_reagent("krokodil", 40)
-		R.add_reagent("catdrugs", 40)
-		R.add_reagent("histamine", 40)
+		src.create_reagents(800)
+		reagents.add_reagent("THC", 40)
+		reagents.add_reagent("LSD", 40)
+		reagents.add_reagent("suicider", 40)
+		reagents.add_reagent("space_drugs", 40)
+		reagents.add_reagent("mercury", 40)
+		reagents.add_reagent("lithium", 40)
+		reagents.add_reagent("atropine", 40)
+		reagents.add_reagent("haloperidol", 40)
+		reagents.add_reagent("methamphetamine", 40)
+		reagents.add_reagent("THC", 40)
+		reagents.add_reagent("capsaicin", 40)
+		reagents.add_reagent("psilocybin", 40)
+		reagents.add_reagent("hairgrownium", 40)
+		reagents.add_reagent("ectoplasm", 40)
+		reagents.add_reagent("bathsalts", 40)
+		reagents.add_reagent("itching", 40)
+		reagents.add_reagent("crank", 40)
+		reagents.add_reagent("krokodil", 40)
+		reagents.add_reagent("catdrugs", 40)
+		reagents.add_reagent("histamine", 40)
 
 /obj/item/plant/herb/tobacco
 	name = "tobacco leaf"
@@ -344,28 +335,23 @@
 	icon_state = "catnip"
 	brewable = 1
 	brew_result = "catdrugs"
-	module_research = list("vice" = 3)
-	module_research_type = /obj/item/plant/herb/cannabis
 
 /obj/item/plant/herb/poppy
 	name = "poppy"
 	crop_suffix	= ""
 	desc = "A distinctive red flower."
 	icon_state = "poppy"
-	module_research = list("vice" = 4)
-	module_research_type = /obj/item/plant/herb/cannabis
 
 /obj/item/plant/herb/aconite
 	name = "aconite"
 	crop_suffix	= ""
 	desc = "A professor once asked, \"What is the difference, Mr. Potter, between monkshood and wolfsbane?\"\n  \"Aconite\", answered Hermione. And all was well."
 	icon_state = "aconite"
-	module_research = list("vice" = 3)
 	event_handler_flags = USE_HASENTERED | USE_FLUID_ENTER
 	// module_research_type = /obj/item/plant/herb/cannabis
 	attack_hand(var/mob/user as mob)
 		if (iswerewolf(user))
-			user.changeStatus("weakened",80)
+			user.changeStatus("weakened", 8 SECONDS)
 			user.take_toxin_damage(-10)
 			boutput(user, "<span class='alert'>You try to pick up [src], but it hurts and you fall over!</span>")
 			return
@@ -374,7 +360,7 @@
 	HasEntered(AM as mob|obj)
 		var/mob/M = AM
 		if(iswerewolf(M))
-			M.changeStatus("weakened",30)
+			M.changeStatus("weakened", 3 SECONDS)
 			M.force_laydown_standup()
 			M.take_toxin_damage(-10)
 			M.visible_message("<span class='alert'>The [M] steps too close to [src] and falls down!</span>")
@@ -397,7 +383,7 @@
 		..()
 		return
 	//stolen from dagger, not much too it
-	throw_impact(atom/A)
+	throw_impact(atom/A, datum/thrown_thing/thr)
 		if(iswerewolf(A))
 			if (istype(usr, /mob))
 				A:lastattacker = usr
@@ -437,6 +423,14 @@
 	attack_hand(mob/user as mob)
 		var/mob/living/carbon/human/H = user
 		if(src.thorned)
+			if (H.hand)//gets active arm - left arm is 1, right arm is 0
+				if (istype(H.limbs.l_arm,/obj/item/parts/robot_parts))
+					..()
+					return
+			else
+				if (istype(H.limbs.r_arm,/obj/item/parts/robot_parts))
+					..()
+					return
 			if(istype(H))
 				if(H.gloves)
 					..()
@@ -460,3 +454,6 @@
 	name = "houttuynia cordata"
 	desc = "Also known as fish mint or heart leaf, used in cuisine for its distinct fishy flavor."
 	icon_state = "hcordata"
+
+#undef HERB_SMOKE_TRANSFER_HARDCAP
+#undef HERB_HOTBOX_MULTIPLIER

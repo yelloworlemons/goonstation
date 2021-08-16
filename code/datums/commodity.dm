@@ -557,7 +557,7 @@
 
 /datum/commodity/podparts/blackarmor
 	comname = "Strange Armor Plating"
-	comtype = /obj/item/pod/armor_black
+	comtype = /obj/item/podarmor/armor_black
 	desc = "NT Special Ops vehicular armor plating, almost certainly stolen."
 	price = 50000
 	baseprice = 50000
@@ -566,7 +566,7 @@
 
 /datum/commodity/podparts/redarmor
 	comname = "Syndicate Pod Armor"
-	comtype = /obj/item/pod/armor_red
+	comtype = /obj/item/podarmor/armor_red
 	desc = "A kit of Syndicate pod armor plating."
 	price = 25000
 	baseprice = 25000
@@ -575,7 +575,7 @@
 
 /datum/commodity/podparts/goldarmor
 	comname = "Gold Pod Armor"
-	comtype = /obj/item/pod/armor_gold
+	comtype = /obj/item/podarmor/armor_gold
 	desc = "A kit of gold-plated pod armor plating."
 	price = 32500
 	baseprice = 32500
@@ -777,6 +777,15 @@
 	upperfluc = 100
 	lowerfluc = -100
 
+/datum/commodity/drug/lsd_bee
+	comname = "LSBee (1x patch)"
+	comtype = /obj/item/reagent_containers/patch/lsd_bee
+	desc = "A highly potent hallucinogenic substance. It smells like honey."
+	price = 220
+	baseprice = 220
+	upperfluc = 100
+	lowerfluc = -100
+
 /datum/commodity/pills/uranium
 	comname = "Uranium (1x nugget)"
 	comtype = /obj/item/reagent_containers/pill/uranium
@@ -859,6 +868,15 @@
 	upperfluc = 5000
 	lowerfluc = -3000
 
+/datum/commodity/relics/bootlegfirework
+	comname = "Bootleg Firework (1x rocket)"
+	comtype = /obj/item/firework/bootleg
+	desc = "Bootleg fireworks, found deep in the back of an old warehouse."
+	price = 60
+	baseprice = 60
+	upperfluc = 10
+	lowerfluc = -10
+
 ////////////////////////////////
 ///// syndicate trader /////////
 ////////////////////////////////
@@ -905,7 +923,7 @@
 
 /datum/commodity/contraband/hosberet
 	comname = "Head of Security Beret"
-	comtype = /obj/item/clothing/head/helmet/HoS
+	comtype = /obj/item/clothing/head/hos_hat
 	desc = "The beloved beret of an NT HoS."
 	price = 10000
 	baseprice = 10000
@@ -1233,6 +1251,15 @@
 	baseprice = 150
 	upperfluc = 50
 	lowerfluc = -50
+
+/datum/commodity/junk/pie_launcher
+	comname = "Pie Tool Module"
+	comtype = /obj/item/device/guardbot_tool/pie_launcher
+	desc = "A tool module compatible with guardbuddies. Are tool modules supposed to have cream on them?"
+	price = PAY_DOCTORATE/2
+	baseprice = PAY_DOCTORATE/2
+	upperfluc = PAY_DOCTORATE/6
+	lowerfluc = -PAY_DOCTORATE/6
 
 /datum/commodity/junk/laughbox
 	comname = "Box of Laughs"
@@ -2128,6 +2155,56 @@
 	upperfluc = 150
 	lowerfluc = -100
 
+/datum/commodity/costume/mime
+	comname = "Mime Clothes"
+	comtype = /obj/item/storage/box/costume/mime
+	desc = "No words can describe this. Only intricate gesticulation."
+	price = 100 //exactly what the clown spawns with in their account, three mimes on mondays.
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
+/datum/commodity/costume/mime/alt
+	comname = "Alternate Mime Clothes."
+	comtype = /obj/item/storage/box/costume/mime/alt
+	desc = "This stuff will give you an edge in charades."
+
+/datum/commodity/backpack/breadpack
+	comname = "Bag-uette"
+	comtype = /obj/item/storage/backpack/breadpack
+	desc = "A bread-themed backpack...? It kind of smells like bread too! Unfortunately inedible."
+	price = 600
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
+/datum/commodity/backpack/bearpack
+	comname = "Bearpack"
+	comtype = /obj/item/storage/backpack/bearpack
+	desc = "A teddy bear backpack; perfect for hugs AND carries your gear for you, how helpful!"
+	price = 500
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
+/datum/commodity/backpack/turtlebrown
+	comname = "Brown Turtle Shell Backpack"
+	comtype = /obj/item/storage/backpack/turtlebrown
+	desc = "All the hip teenage mutants have one of these turtle shell backpacks."
+	price = 650
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
+/datum/commodity/backpack/turtlegreen
+	comname = "Green Turtle Shell Backpack"
+	comtype = /obj/item/storage/backpack/turtlegreen
+	desc = "All the hip teenage mutants have one of these turtle shell backpacks."
+	price = 650
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -100
+
 /datum/commodity/balloons //no it ain't a costume kit but it's going in Geoff's wares so idgaf tOt fite me
 	comname = "box of balloons"
 	comtype = /obj/item/storage/box/balloonbox
@@ -2147,6 +2224,71 @@
 	baseprice = 50
 	upperfluc = 100
 	lowerfluc = -20
+
+/datum/commodity/sticker/
+	onmarket = 0
+
+/datum/commodity/sticker/googly_eyes
+	comname = "box of googly eyes"
+	comtype = /obj/item/item_box/googly_eyes
+	desc = "A box of googly eyes! Sweet!"
+	onmarket = 0
+	price = 50
+	baseprice = 50
+	upperfluc = 100
+	lowerfluc = -20
+
+/datum/commodity/sticker/googly_eyes_angry
+	comname = "box of angry googly eyes"
+	comtype = /obj/item/item_box/googly_eyes/angry
+	desc = "A box of angry googly eyes! Aaaaargh!"
+	onmarket = 0
+	price = 50
+	baseprice = 50
+	upperfluc = 100
+	lowerfluc = -20
+
+/datum/commodity/toygun
+	comname = "Toy Gun"
+	comtype = /obj/item/gun/kinetic/foamdartgun
+	desc = "A toy gun that fires foam darts."
+	onmarket = 0
+	price = 2000
+	baseprice = 2000
+	upperfluc = 100
+	lowerfluc = -100
+
+/datum/commodity/toygunammo
+	comname = "Foam Darts"
+	comtype = /obj/item/ammo/bullets/foamdarts
+	desc = "A box of foam darts for toy guns."
+	onmarket = 0
+	price = 200
+	baseprice = 200
+	upperfluc = 40
+	lowerfluc = -40
+
+/*
+/datum/commodity/screamshoes
+	comname = "scream shoes"
+	comtype = /obj/item/clothing/shoes/scream
+	desc = "AAAAAAAAAAAAAAAAAAAA!"
+	onmarket = 0
+	price = 50
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -20
+
+/datum/commodity/fartflops
+	comname = "fart-flops"
+	comtype = /obj/item/clothing/shoes/fart
+	desc = "They fart when you walk."
+	onmarket = 0
+	price = 50
+	baseprice = 100
+	upperfluc = 150
+	lowerfluc = -20
+*/
 
 /// pathology
 /datum/commodity/synthmodule
@@ -2685,3 +2827,12 @@
 	baseprice = 2000
 	upperfluc = 1700
 	lowerfluc = -1700
+
+/datum/commodity/expensive_card
+	comname = "Incredibly Expensive Card"
+	desc = "Wow...people really pay a lot for these cards..."
+	comtype = /obj/item/playing_card/expensive
+	onmarket = 1
+	price = 21000
+	upperfluc = 20000
+	lowerfluc = -28500

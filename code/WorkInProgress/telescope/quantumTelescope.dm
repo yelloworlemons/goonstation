@@ -6,6 +6,7 @@ TODO: Enforce ping rate limit here as well in case someone futzes with the javas
 	name = "quantum telescope"
 	icon = 'icons/obj/computer.dmi'
 	icon_state = "computer_generic"
+	circuit_type = /obj/item/circuitboard/telescope
 
 	var/mob/using = null
 
@@ -21,13 +22,10 @@ TODO: Enforce ping rate limit here as well in case someone futzes with the javas
 			rebuildEventList(using)
 
 	proc/boot_if_away()
-		if(using && (!using.client || using.client.inactivity >= 600 || get_dist(src, using) > 1))
+		if(using && (!using.client || using.client.inactivity >= 600 || !in_interact_range(src, using)))
 			using.Browse(null, "window=qtelescope;override_setting=1")
 			using = null
 		return
-
-	attack_ai(mob/user as mob)
-		return attack_hand(user)
 
 	attack_hand(mob/user as mob)
 		if(status & (BROKEN|NOPOWER))
@@ -43,10 +41,6 @@ TODO: Enforce ping rate limit here as well in case someone futzes with the javas
 		src.add_dialog(user)
 		add_fingerprint(user)
 
-		//Other resources are loaded in the files like <link rel="stylesheet" type="text/css" href="{{resource("css/telescope.css")}}">
-		//Couldn't get this to work for sounds inside .js file.
-		user << browse_rsc(file("browserassets/sounds/sweep.mp3"))
-		user << browse_rsc(file("browserassets/sounds/found.mp3"))
 		user.Browse(grabResource("html/telescope.html"), "window=qtelescope;size=974x560;title=Quantum Telescope;can_resize=0", 1)
 
 		onclose(user, "telescope", src)
@@ -124,6 +118,7 @@ TODO: Enforce ping rate limit here as well in case someone futzes with the javas
 							var/disty = abs(vY - E.loc_y)
 							var/dist = (distx * distx + disty * disty) ** 0.5
 							if (dist <= E.size)
+								using.playsound_local(src.loc, "sound/machines/found.ogg", 50, 1)
 								E.onDiscover(src)
 								tele_man.events_active.Remove(tracking_id)
 								tele_man.events_found.Add(tracking_id)
@@ -132,11 +127,12 @@ TODO: Enforce ping rate limit here as well in case someone futzes with the javas
 								rebuildEventList(using)
 								callJsFunc(using, "byondFound", list(E.loc_x, E.loc_y, E.size, E.id))
 							else
+								using.playsound_local(src.loc, "sound/machines/sweep.ogg", 50, 1)
 								//callJsFunc(using, "showFooterMsg", list("dist [(distx + disty)]"))
 								rebuildEventList(using)
 
-								// Actual size of circle to show; 90% to 120% of actual radius
-								var/ping_radius = (dist + E.size) * rand(90, 120) / 100
+								// Actual size of circle to show; 100% to 120% of actual radius
+								var/ping_radius = (dist + E.size) * rand(100, 120) / 100
 								callJsFunc(using, "byondAddMark", list(vX, vY, ping_radius))
 							break
 		return
