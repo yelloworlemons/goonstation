@@ -424,6 +424,18 @@ var/f_color_selector_handler/F_Color_Selector
 	src.load_admins()//UGH
 	Z_LOG_DEBUG("World/New", "Loading whitelist...")
 	src.load_whitelist("+secret/strings/whitelist.txt")
+
+	// Temp hotpatch for tomato whitelist (as a result of spacebee and the game servers existing on different machines)
+	var/datum/http_request/request = new()
+	request.prepare(RUSTG_HTTP_METHOD_GET, "http://stuff.goonhub.com/tomato-whitelist.txt", "", "")
+	request.begin_async()
+	UNTIL(request.is_complete())
+	var/datum/http_response/response = request.into_response()
+	if (!response.errored && response.body)
+		var/genWhiteFile = file("data/generated-whitelist.txt")
+		fdel(genWhiteFile)
+		genWhiteFile << response.body
+
 	src.load_whitelist("data/generated-whitelist.txt")
 	Z_LOG_DEBUG("World/New", "Loading playercap bypass keys...")
 	src.load_playercap_bypass()
