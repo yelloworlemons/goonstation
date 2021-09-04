@@ -10,7 +10,7 @@
 
 
 /proc/debugWhitelist()
-	out(usr, json_encode(whiteListCkeys))
+	out(usr, json_encode(whitelistCkeys))
 
 
 /proc/mapWorldNew(client/C)
