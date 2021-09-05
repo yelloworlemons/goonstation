@@ -1072,8 +1072,7 @@ proc/get_adjacent_floor(atom/W, mob/user, px, py)
 		for(var/i=0, i<duration, i++)
 			var/off_x = (rand(0, strength) * (prob(50) ? -1:1))
 			var/off_y = (rand(0, strength) * (prob(50) ? -1:1))
-			animate(client, pixel_x = off_x, pixel_y = off_y, easing = LINEAR_EASING, time = 1, flags = ANIMATION_RELATIVE)
-			animate(pixel_x = off_x*-1, pixel_y = off_y*-1, easing = LINEAR_EASING, time = 1, flags = ANIMATION_RELATIVE)
+			animate(client, time = 2, pixel_x = off_x, pixel_y = off_y, easing = LINEAR_EASING)
 			sleep(delay)
 
 		if (client)
@@ -2090,7 +2089,7 @@ proc/countJob(rank)
 var/global/nextDectalkDelay = 5 //seconds
 var/global/lastDectalkUse = 0
 /proc/dectalk(msg)
-	if (!msg) return 0
+	if (!msg || !ircbot.apikey) return 0
 	if (world.timeofday > (lastDectalkUse + (nextDectalkDelay * 10)))
 		lastDectalkUse = world.timeofday
 		msg = copytext(msg, 1, 2000)

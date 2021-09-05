@@ -280,6 +280,21 @@ toxic - poisons
 	syndicate
 		reagent_payload = "sodium_thiopental" // HEH
 
+		curare
+			reagent_payload = "curare"
+			casing = null
+			silentshot = 1
+
+		madness
+			reagent_payload = "madness_toxin"
+			casing = null
+			silentshot = 1
+
+		venom
+			reagent_payload = "venom"
+			casing = null
+			silentshot = 1
+
 		pistol
 			caliber = 0.355
 			casing = /obj/item/casing/small
