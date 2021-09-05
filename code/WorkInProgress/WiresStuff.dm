@@ -9,6 +9,10 @@
 	//boop2
 
 
+/proc/debugWhitelist()
+	out(usr, json_encode(whitelistCkeys))
+
+
 /proc/mapWorldNew(client/C)
 	// future proofing against varied world icon sizes
 	var/iconWidth
