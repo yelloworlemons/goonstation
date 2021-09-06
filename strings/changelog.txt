@@ -1,5 +1,28 @@
 
+(t)mon sep 06 21
+(u)DoctorStupid
+(p)5830
+(e)🆕🎨|feature, sprites
+(*)toy guns sold by Geoff Honkington are much cheaper and have been reworked. More powerful toy guns are now sold by Josh in the QM console
 (t)sun sep 05 21
+(u)Zamujasa
+(e)🆕|feature
+(*)Players in Ghost VR or the Afterlife Bar should now get alerts and be eligible for random event antagonist/pest spawns.
+(u)Vaskritaya
+(p)5789
+(e)🆕🗺|feature, mapping
+(+)Flasks are now available from the Spacebux menu.
+(u)Walpvrgis
+(p)5903
+(e)🆕🎨|feature, sprites
+(*)Added a new spacebux ghost critter purchase; Lil Bird Ghost Critter. It costs 1000 spacebux and lets you play as a little sparrow or robin if you decide to respawn after tiring of the afterlife!
+(u)Kubius
+(p)5909
+(e)🆕🗺|feature, mapping
+(+)Small set of Kondaru adjustments; cloning room rearranged for easier reclaimer loading and patient release, and hydro grow lamp count reduced for parity.
+(u)Tarmunora
+(e)🔄|rework
+(+)Drowsiness migrated to status system.
 (u)Mordent
 (p)5878
 (e)⚖⛔|balance, removal
