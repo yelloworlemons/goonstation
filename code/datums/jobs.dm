@@ -175,7 +175,7 @@ ABSTRACT_TYPE(/datum/job/command)
 	slot_poc1 = list(/obj/item/disk/data/floppy/read_only/authentication)
 	items_in_backpack = list(/obj/item/storage/box/id_kit,/obj/item/device/flash)
 #ifdef RP_MODE
-	rounds_needed_to_play = 20
+	//rounds_needed_to_play = 20
 #endif
 
 	New()
@@ -481,7 +481,7 @@ ABSTRACT_TYPE(/datum/job/security)
 	slot_eyes = list(/obj/item/clothing/glasses/sunglasses/sechud)
 	slot_poc1 = list(/obj/item/storage/security_pouch) //replaces sec starter kit
 	slot_poc2 = list(/obj/item/requisition_token/security)
-	rounds_needed_to_play = 30 //higher barrier of entry than before but now with a trainee job to get into the rythym of things to compensate
+	//rounds_needed_to_play = 30 //higher barrier of entry than before but now with a trainee job to get into the rythym of things to compensate
 
 	New()
 		..()
@@ -507,7 +507,7 @@ ABSTRACT_TYPE(/datum/job/security)
 		slot_poc1 = list(/obj/item/storage/security_pouch/assistant)
 		slot_poc2 = list(/obj/item/requisition_token/security/assistant)
 		items_in_backpack = list(/obj/item/paper/book/from_file/space_law)
-		rounds_needed_to_play = 5
+		//rounds_needed_to_play = 5
 
 		New()
 			..()
