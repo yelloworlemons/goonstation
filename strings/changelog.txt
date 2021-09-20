@@ -1,5 +1,19 @@
 
 (t)mon sep 20 21
+(u)Azrun
+(p)5917
+(e)🆕⚖|feature, balance
+(*)You can mix and match lungs!
+(u)Sord
+(p)5890
+(e)🗺|mapping
+(+)Destiny now has a customs booth near the bridge, as well as a new clothing shop replacing some of the old crew quarters!
+(u)eX.n0x & Nefarious6th
+(p)5758
+(e)🎨|sprites
+(+)Card decks can now be taken out of pockets using the "pick up" action.
+(+)The process to open a Spacemen: the Grifening deck box is now easier!
+(+)Realistic card shuffling re-added; your cards might stick to each other!
 (u)pali
 (*)Vomit now contains DNA of the person who vomited it.
 (u)RSG250
