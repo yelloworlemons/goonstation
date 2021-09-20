@@ -1,5 +1,13 @@
 
 (t)mon sep 20 21
+(u)pali
+(p)6056
+(e)🆕📄|feature, tgui
+(*)Ouija boards have moved to the 21st centure and now contain emoji
+(u)Obama Gaming
+(p)5901
+(e)🗺|mapping
+(*)Added a new location to quantum telescope. Accessible through long range teleporter.
 (u)Azrun
 (p)5917
 (e)🆕⚖|feature, balance
