@@ -402,18 +402,13 @@ var/f_color_selector_handler/F_Color_Selector
 		var/datum/tgs_revision_information/rev = TgsRevision()
 		vcs_revision = rev.commit
 
-	if(world.load_intra_round_value("heisenbee_tier") >= 15 && prob(50) || prob(3))
-		lobby_titlecard = new /datum/titlecard/heisenbee()
-	else
-		lobby_titlecard = new /datum/titlecard()
+	lobby_titlecard = new /datum/titlecard/nightshade()
 
 	lobby_titlecard.set_pregame_html()
 
 	diary = file("data/logs/[time2text(world.realtime, "YYYY/MM-Month/DD-Day")].log")
 	diary_name = "data/logs/[time2text(world.realtime, "YYYY/MM-Month/DD-Day")].log"
 	logDiary("\n----------------------\nStarting up. [time2text(world.timeofday, "hh:mm.ss")]\n----------------------\n")
-
-	pregameHTML = {"<meta http-equiv='X-UA-Compatible' content='IE=edge'><style>body{margin:0;padding:0;background:url([resource("images/nightshade_titlecard.png")]) black;background-size:100%;background-repeat:no-repeat;overflow:hidden;background-position:center center;background-attachment:fixed;}</style><script>document.onclick=function(){window.location.href="byond://winset?id=mapwindow.map&focus=true";}</script>"}
 
 	//This is used by bans for checking, so we want it very available
 	apiHandler = new()

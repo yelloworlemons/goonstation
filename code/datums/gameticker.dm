@@ -58,8 +58,7 @@ var/global/current_state = GAME_STATE_WORLD_INIT
 
 
 	var/did_mapvote = 0
-	if (!player_capa)
-		new /obj/overlay/zamujasa/round_start_countdown/encourage()
+	new /obj/overlay/zamujasa/round_start_countdown/encourage_nightshade()
 	var/obj/overlay/zamujasa/round_start_countdown/timer/title_countdown = new()
 	while (current_state <= GAME_STATE_PREGAME)
 		sleep(1 SECOND)
