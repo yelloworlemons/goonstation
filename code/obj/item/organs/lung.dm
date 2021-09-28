@@ -12,7 +12,7 @@
 	failure_disease = /datum/ailment/disease/respiratory_failure
 	var/temp_tolerance = T0C+66
 
-	var/safe_oxygen_min = 17 // Minimum safe partial pressure of O2, in kPa
+	var/safe_oxygen_min = 16 // Minimum safe partial pressure of O2, in kPa
 	var/safe_co2_max = 9 // Yes it's an arbitrary value who cares?
 	var/safe_toxins_max = 0.4
 	var/SA_para_min = 1
@@ -81,7 +81,7 @@
 				if (O2_pp > 0)
 					var/ratio = round(safe_oxygen_min/(O2_pp + 0.1))
 					donor.take_oxygen_deprivation(min(5*ratio, 5)/LUNG_COUNT) // Don't fuck them up too fast (space only does 7 after all!)
-					oxygen_used = breath.oxygen*ratio/6
+					oxygen_used = min(breath.oxygen*ratio/6, breath.oxygen)
 				else
 					donor.take_oxygen_deprivation(3 * mult/LUNG_COUNT)
 				update.show_oxy_indicator = TRUE
@@ -89,7 +89,6 @@
 				donor.take_oxygen_deprivation(-6 * mult/LUNG_COUNT)
 				oxygen_used = breath.oxygen/6
 
-			oxygen_used /= LUNG_COUNT
 			breath.oxygen -= oxygen_used
 			breath.carbon_dioxide += oxygen_used
 
