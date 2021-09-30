@@ -421,10 +421,10 @@ var/f_color_selector_handler/F_Color_Selector
 	src.load_whitelist("+secret/strings/whitelist.txt")
 
 	// Temp hotpatch for tomato whitelist (as a result of spacebee and the game servers existing on different machines)
-	/*
 	if (serverKey != 13)
 		var/datum/http_request/request = new()
-		request.prepare(RUSTG_HTTP_METHOD_GET, "http://stuff.goonhub.com/tomato-whitelist.txt", "", "")
+		// request.prepare(RUSTG_HTTP_METHOD_GET, "http://stuff.goonhub.com/tomato-whitelist.txt", "", "")
+		request.prepare(RUSTG_HTTP_METHOD_GET, config.irclog_url + "/nightshade_whitelist", "", "") // medass backup of the temp hotpatch
 		request.begin_async()
 		UNTIL(request.is_complete())
 		var/datum/http_response/response = request.into_response()
@@ -432,7 +432,6 @@ var/f_color_selector_handler/F_Color_Selector
 			var/genWhiteFile = file("data/generated-whitelist.txt")
 			fdel(genWhiteFile)
 			genWhiteFile << response.body
-	*/
 
 	src.load_whitelist("data/generated-whitelist.txt")
 	Z_LOG_DEBUG("World/New", "Loading playercap bypass keys...")
