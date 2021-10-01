@@ -428,7 +428,7 @@ var/f_color_selector_handler/F_Color_Selector
 		request.begin_async()
 		UNTIL(request.is_complete())
 		var/datum/http_response/response = request.into_response()
-		if (!response.errored && response.body)
+		if (!response.errored && response.body && length(response.body) > 150)
 			var/genWhiteFile = file("data/generated-whitelist.txt")
 			fdel(genWhiteFile)
 			genWhiteFile << response.body
