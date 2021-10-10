@@ -32,16 +32,12 @@
 				if (src.emote_check(voluntary, 300))
 					playsound(src, "sound/misc/lincolnshire.ogg", 65, 1, channel=VOLUME_CHANNEL_EMOTE)
 					return "<span class='emote'><b>[src]</b> plays a song!</span>"
-				else
-					boutput(src, "TOO EARLY TO ACT AGAIN")
 			if ("fart")
 				return
 			if ("dance")
 				if (src.emote_check(voluntary, 100))
 					animate_bouncy(src)
 					return "<span class='emote'><b>[src]</b> dances!</span>"
-				else
-					boutput(src, "TOO EARLY TO ACT AGAIN")
 			if ("snap")
 				if (src.emote_check(voluntary, 100))
 					if (prob(33))
@@ -58,10 +54,25 @@
 		if (..(parent))
 			return 1
 
+		being_seen_status_update()
+		SPAWN_DBG(2 SECONDS)  // gross bandaid to work around the life loop being a tad too slow
+			being_seen_status_update()
+
+	proc/set_dormant_status(var/enabled)
+		if(enabled)
+			if(!src.hasStatus("dormant"))
+				src.setStatus("dormant", INFINITE_STATUS)
+		else
+			src.delStatus("dormant")
+
+
+	proc/being_seen_status_update()
 		if (last_witness) // optimization attempt
 			if(get_dist(src, last_witness) < 3) // still next to last person that saw us, might be for instance pulling us or sitting next to us
+				set_dormant_status(TRUE)
 				return
 			else
+				set_dormant_status(FALSE)
 				last_witness = null
 
 		for (var/mob/M in viewers(src))
@@ -72,6 +83,7 @@
 			if (M.client) // Only players
 				last_witness = M
 				being_seen = TRUE
+				set_dormant_status(TRUE)
 				return
 		being_seen = FALSE
 
@@ -94,7 +106,7 @@
 	name = "Talk"
 	desc = "Communicate through sound."
 	icon_state = "corruption"
-	cooldown = 40
+	cooldown = 50
 	var/words_min = 5
 	var/words_max = 10
 
@@ -145,8 +157,8 @@
 		if (!isturf(target))
 			if(istype(target, /obj/storage))
 				var/obj/storage/targetted_container
-				if(targetted_container.req_access != null)
-					target = get_turf(target) // couldn't find a container that wasn't access-locked
+				if(!targetted_container.locked)
+					target = get_turf(target) // couldn't find a container that wasn't locked
 			else
 				target = get_turf(target)
 		if (target == get_turf(holder.owner))
@@ -192,7 +204,7 @@
 
 			var/list/eligible_containers = list()
 			for_by_tcl(iterated_container, /obj/storage)
-				if (iterated_container.z == Z_LEVEL_STATION && iterated_container.req_access == null)
+				if (iterated_container.z == Z_LEVEL_STATION && !iterated_container.locked)
 					eligible_containers += iterated_container
 			if (!length(eligible_containers))
 				return
@@ -254,7 +266,7 @@
 
 					var/list/eligible_containers = list()
 					for_by_tcl(iterated_container, /obj/storage)
-						if (iterated_container.z == Z_LEVEL_STATION && iterated_container.req_access == null)
+						if (iterated_container.z == Z_LEVEL_STATION && !iterated_container.locked)
 							eligible_containers += iterated_container
 					if (!length(eligible_containers))
 						return
