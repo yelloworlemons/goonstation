@@ -81,7 +81,6 @@
 		window.initialize(
 			fancy = user.client.preferences.tgui_fancy,
 			inline_assets = list(
-				get_assets(/datum/asset/basic/tgui_common),
 				get_assets(/datum/asset/group/base_tgui)
 			))
 	else
