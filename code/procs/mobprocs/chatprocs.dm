@@ -22,17 +22,16 @@
 	if (istype(src, /mob/living))
 		M = src
 
+	var/current_time = TIME
 	if (M)
 		M.speech_bubble.icon_state = "typing"
 		UpdateOverlays(M.speech_bubble, "speech_bubble")
-		var/current_time = TIME
 		M.last_typing = current_time
 
 		SPAWN_DBG(15 SECONDS)
 			if (M?.last_typing != current_time)
 				return
-			if (M?.speech_bubble?.icon_state == "typing")
-				M.UpdateOverlays(null, "speech_bubble")
+			M.UpdateOverlays(null, "speech_bubble")
 
 	var/msg = input("", "Say") as null|text
 
@@ -41,7 +40,7 @@
 		src.say_verb(msg)
 		return
 
-	if (M && M.speech_bubble?.icon_state == "typing")
+	if (M?.last_typing == current_time)
 		M.last_typing = null
 		M.UpdateOverlays(null, "speech_bubble")
 
@@ -59,11 +58,31 @@
 	src.say(message)
 	if (!dd_hasprefix(message, "*")) // if this is an emote it is logged in emote
 		logTheThing("say", src, null, "SAY: [html_encode(message)] [log_loc(src)]")
-		//logit("say", 0, src, " said ", message)
+
+/mob/living/say_verb(message as text)
+	set name = "say"
+	. = ..()
+	if (src.speech_bubble?.icon_state == "typing")
+		src.UpdateOverlays(null, "speech_bubble")
 
 /mob/verb/say_radio()
 	set name = "say_radio"
 	set hidden = 1
+
+/mob/verb/say_main_radio()
+	set name = "say_main_radio"
+	set hidden = 1
+
+/mob/living/say_main_radio()
+	set name = "say_main_radio"
+	set hidden = 1
+	var/text = input("", "Speaking on the main radio frequency") as null|text
+	if (client.preferences.auto_capitalization)
+		var/i = 1
+		while (copytext(text, i, i+1) == " ")
+			i++
+		text = capitalize(copytext(text, i))
+	src.say_verb(";" +text)
 
 /mob/living/say_radio()
 	set name = "say_radio"
