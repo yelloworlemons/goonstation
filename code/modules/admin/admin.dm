@@ -2216,14 +2216,24 @@ var/global/noir = 0
 						switch (href_list["offset_type"])
 							if ("absolute")
 								for (var/path in paths)
-									var/atom/thing = new path(locate(0 + X,0 + Y,0 + Z))
+									var/atom/thing
+									if(ispath(path, /turf))
+										var/turf/T = locate(0 + X,0 + Y,0 + Z)
+										thing = T.ReplaceWith(path, FALSE, TRUE, FALSE, TRUE)
+									else
+										thing = new path(locate(0 + X,0 + Y,0 + Z))
 									thing.set_dir(direction ? direction : SOUTH)
 									LAGCHECK(LAG_LOW)
 
 							if ("relative")
 								if (loc)
 									for (var/path in paths)
-										var/atom/thing = new path(locate(loc.x + X,loc.y + Y,loc.z + Z))
+										var/atom/thing
+										if(ispath(path, /turf))
+											var/turf/T = locate(loc.x + X,loc.y + Y,loc.z + Z)
+											thing = T.ReplaceWith(path, FALSE, TRUE, FALSE, TRUE)
+										else
+											thing = new path(locate(loc.x + X,loc.y + Y,loc.z + Z))
 										thing.set_dir(direction ? direction : SOUTH)
 										LAGCHECK(LAG_LOW)
 								else
@@ -4322,9 +4332,6 @@ var/global/noir = 0
 	SET_ADMIN_CAT(ADMIN_CAT_SERVER)
 	set name = "Restart"
 	set desc= "Restarts the world"
-
-	if (mapSwitcher.locked)
-		return alert("The map switcher is currently compiling the map for next round. You must wait until it finishes.")
 
 	var/confirm = alert("Restart the game world?", "Restart", "Yes", "Cancel")
 	if(confirm == "Cancel")
