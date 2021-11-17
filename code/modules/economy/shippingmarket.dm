@@ -316,6 +316,8 @@
 						if (sell)
 							qdel(O)
 						break
+					else if (O.artifact && sell)
+						src.sell_artifact(O, O.artifact)
 		else // Please excuse this duplicate code, I'm gonna change trader commodity lists into associative ones later I swear
 			for(var/obj/O in items)
 				for (var/datum/commodity/C in commodities_list)
@@ -570,7 +572,7 @@
 	if (!trans) return
 
 	var/amount = input(usr, "How much?", "Funds", 0) as null|num
-	if (!amount) return
+	if (!isnum_safe(amount)) return
 
 	switch(trans)
 		if("Payroll")
