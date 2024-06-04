@@ -1035,6 +1035,13 @@ TYPEINFO(/datum/trait/partyanimal)
 		..()
 		OTHER_STOP_TRACKING_CAT(owner, TR_CAT_NERVOUS_MOBS)
 
+/datum/trait/nyctophobe
+	name = "Nyctophobe"
+	desc = "Staying in the dark for too long will make you panic."
+	id = "nyctophobe"
+	icon_state = "placeholder"
+	points = 1
+
 /datum/trait/burning
 	name = "Human Torch"
 	desc = "Fire no longer slowly peters out when you're burning."
