@@ -1042,6 +1042,14 @@ TYPEINFO(/datum/trait/partyanimal)
 	icon_state = "placeholder"
 	points = 1
 
+	onAdd(var/mob/owner)
+		..()
+		owner.setStatus("creeping_dreadA", duration = INFINITE_STATUS)
+
+	onRemove(var/mob/owner)
+		..()
+		owner.delStatus("creeping_dreadA")
+
 /datum/trait/burning
 	name = "Human Torch"
 	desc = "Fire no longer slowly peters out when you're burning."

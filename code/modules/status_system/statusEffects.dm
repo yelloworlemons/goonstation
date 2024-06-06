@@ -2898,3 +2898,230 @@
 
 	getTooltip()
 		return "You've [alpha == 0 ? "completely" : "partially"] faded from view! People can still hear you and see light from anything you're carrying."
+
+/datum/statusEffect/creeping_dreadA	//Aka fear of the dark
+	id = "creeping_dreadA"
+	name = "Creeping dreadA"
+	desc = "The dark is trying to get you! Stay in the light!"
+	icon_state = "dread1"
+	unique = 1
+	duration = 30 SECONDS
+	maxDuration = 3 MINUTES
+	var/mob/living/carbon/human/H
+
+	onUpdate(var/timePassed)
+
+		var/mult = timePassed / (2 SECONDS)
+
+		if (!ishuman(owner)) return
+
+		H = owner
+		var/turf/local_turf = get_turf(H)
+		if (local_turf.RL_GetBrightness() <= 0.3)
+			duration += timePassed * 2
+		else
+			duration = INFINITE_STATUS
+			icon_state = "dread1"
+
+		if (H.loc && istype(H.loc, /turf/space))
+			duration = INFINITE_STATUS
+
+		if (!isalive(H)) return
+
+		if ((duration >= 20 SECONDS))
+			if(probmult(13))
+				switch (rand(1,5))
+					if (1)
+						H.emote("pale")
+					if (2)
+						boutput(H, SPAN_ALERT(pick("It feels colder than usual here.", "You feel the hairs on your neck stand on end.", "You feel like something is watching you.", "Something is watching you.")))
+						H.emote("shiver")
+					if (3)
+						boutput(H, SPAN_ALERT(pick("Did something just touch you?", "There's something moving in the darkness.")))
+						H.emote("whimper")
+					if (4)
+						boutput(H, SPAN_ALERT("You feel something touch your hand!"))
+						H.emote("twitch")
+					if (5)
+						boutput(H, SPAN_ALERT(pick("You feel something brush against your leg!", "Something just brushed against your leg!")))
+						H.emote("twitch_v")
+		if ((duration >= 40 SECONDS))
+			if(probmult(12))
+				switch (rand(1,3))
+					if (1)
+						boutput(H, SPAN_ALERT(pick("It feels like it's getting darker the longer you're here.", "This isn't good! Find some light FAST!")))
+						H.emote(pick("shiver", "tremble"))
+					if (2)
+						boutput(H, SPAN_ALERT(pick("<b>Did something just crawl across the ceiling!?</b>", "That silhouette didn't look human.")))
+						H.emote("scream", "whimper")
+					if (3)
+						H.visible_message(SPAN_ALERT("[H] flails around wildly, trying to get some invisible things off [himself_or_herself(H)]."), SPAN_ALERT("You flail around wildly trying to defend yourself from the shadows!"))
+						H.emote("scream")
+						H.setStatus("stunned", 2 SECONDS)
+		if ((duration >= 60 SECONDS))
+			SPAWN(1 SECOND)
+				H.playsound_local(H, "sound/effects/heartbeat.ogg", 50)
+			H.setStatus("nyctohallucination", 30 SECONDS)
+			if(probmult(11))
+				switch (rand(1, 4))
+					if (1)
+						H.visible_message(SPAN_ALERT("[H] begins to hyperventilate!"), SPAN_ALERT("You have trouble breathing!"))
+						H.losebreath += 2
+						H.playsound_local(H, "sound/effects/hyperventstethoscope.ogg", 50)
+					if (2)
+						boutput(H, SPAN_ALERT(pick("YOU NEED TO GET BACK INTO THE LIGHT!", "There was <b>DEFINITELY</b> something crawling through the dark just now!")))
+						H.emote("panic")
+					if (3)
+						H.visible_message(SPAN_ALERT("[H] stumbles around in the darkness!"), SPAN_ALERT("You trip on <b>SOMETHING</b> slithering across the floor!"))
+						H.setStatus("knockdown", 2 SECONDS)
+						H.setStatus("slowed", 5 SECONDS)
+					if (4)
+						H.visible_message(SPAN_ALERT("[H] looks terrified!"), SPAN_ALERT("Your body refuses to move!"))
+						H.emote(pick("pale", "tremble", "shake"))
+						H.setStatus("stunned", 5 SECONDS)
+		if ((duration >= 90 SECONDS))
+			SPAWN(5 DECI SECONDS)
+				H.playsound_local(H, "sound/effects/heartbeat.ogg", 70)
+			H.setStatus("nyctohallucination", 30 SECONDS)
+			if(probmult(10))
+				switch (rand(1, 5))
+					if (1)
+						boutput(H, SPAN_ALERT(pick("<b>YOU CAN'T TAKE IT ANYMORE!!!</b>", "You <b>NEED</b> to find light!", "<b>You don't think you can last much longer in the darkness!</b>")))
+						H.emote(pick("cry", "sob"))
+					if (2)
+						boutput(H, pick("<span style=\"color:red;font-size:1em\">LIGHT! WHERE'S THE LIGHT?!</span>", "<span style=\"color:red;font-size:3em\">GET AWAY!</span>", "<span style=\"color:red;font-size:2em\">IT'S COMING FOR YOU!</span>"))
+						H.emote("scream")
+					if (3)
+						H.visible_message(SPAN_ALERT("[H] collapses on the floor and begins to sob in the fetal position."), SPAN_ALERT("<b>You breakdown and sob uncontrollably.</b>"))
+						H.emote("sob")
+						H.setStatus("knockdown", 6 SECONDS)
+					if (4)
+						H.visible_message(SPAN_ALERT("[H] collapses into a limp pile on the floor."), SPAN_ALERT(pick("<b>It's all too much and your vision fades to black!</b>", "<b>You feel a falling sensation as your vision fades to black!</b>")))
+						H.emote("faint")
+						H.setStatus("resting", INFINITE_STATUS)
+					if (5)
+						H.visible_message(SPAN_ALERT("[H] begins to hyperventilate!"), SPAN_ALERT("You can't control your breathing!"))
+						H.losebreath += 2
+						H.playsound_local(H, "sound/effects/hyperventstethoscope.ogg", 50)
+
+
+/datum/statusEffect/nyctophobe_hallucination
+	id = "nyctohallucination"
+	name = "Darkness Hallucination"
+	desc = "shapes moving in the dark"
+	unique = 1
+	duration = 40 SECONDS
+	maxDuration = 3 MINUTES
+	visible = FALSE
+	var/mob/living/carbon/human/H
+	var/sound_effect = null
+	var/illusion_icon = null
+	var/illusion_icon_state = null
+	var/volume = null
+	var/range = 6
+
+	onAdd(optional=null)
+		. = ..()
+		if (ishuman(owner))
+			H = owner
+			get_image_group(CLIENT_IMAGE_GROUP_ILLUSSION).add_mob(H)
+		else
+			owner.delStatus("nyctohallucination")
+
+	onRemove()
+		. = ..()
+		H = owner
+		get_image_group(CLIENT_IMAGE_GROUP_ILLUSSION).remove_mob(H)
+
+	onUpdate()
+		var/mult = 1
+		if (!isalive(H))
+			return
+		if (probmult(5))
+			switch (rand(1,2))
+				if (1) // Image based illusion
+					var/turf/owner_turf = get_turf(owner)
+					if (!owner_turf) return
+					var/list/turfs = block(locate(max(owner_turf.x - range, 0), max(owner_turf.y - range, 0), owner_turf.z), locate(min(owner_turf.x + range, world.maxx), min(owner_turf.y + range, world.maxy), owner_turf.z))
+					var/list/floor_turfs = list()
+					for (var/turf/simulated/floor/floor in turfs)
+						floor_turfs += floor
+					if (length(floor_turfs))
+						var/turf/F = pick(floor_turfs)
+						if (F.RL_GetBrightness() < 0.2)
+
+							switch(rand(1,6))
+								if (1)
+									sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
+									illusion_icon = 'icons/mob/mob.dmi'
+									illusion_icon_state = "poltergeist-corp"
+									volume = 55
+								if (2)
+									sound_effect = 'sound/effects/ghostlaugh.ogg'
+									illusion_icon = 'icons/mob/critter/humanoid/shade.dmi'
+									illusion_icon_state = "shade"
+									volume = 55
+								if (3)
+									sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
+									illusion_icon = 'icons/mob/mob.dmi'
+									illusion_icon_state = "wraith"
+									volume = 55
+								if (4)
+									sound_effect = "sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg"
+									illusion_icon = 'icons/misc/critter.dmi'
+									illusion_icon_state = "aberration"
+									volume = 55
+								if (5)
+									sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
+									illusion_icon = 'icons/effects/wraitheffects.dmi'
+									illusion_icon_state = "evilaura"
+									volume = 55
+								if (6)
+									sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
+									illusion_icon = 'icons/effects/wraitheffects.dmi'
+									illusion_icon_state = "acursed"
+									volume = 55
+						else
+							return
+						var/image/illusionIcon = image(illusion_icon, F, null, EFFECTS_LAYER_UNDER_4)
+						illusionIcon.icon_state = illusion_icon_state
+						get_image_group(CLIENT_IMAGE_GROUP_ILLUSSION).add_image(illusionIcon)	//Put the image in a group so the illusion is shared
+						if (sound_effect != null)
+							H.playsound_local(H.loc,sound_effect, volume, 1)
+						sleep(4 SECONDS)
+						qdel(illusionIcon)
+				if (2) //sound based
+					switch(rand(1,9))
+						if (1)
+							sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
+							volume = 55
+						if (2)
+							sound_effect = "sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg"
+							volume = 55
+						if (3)
+							sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
+							volume = 55
+						if (3)
+							sound_effect = 'sound/misc/hastur/growl.ogg'
+							volume = 55
+						if (4)
+							sound_effect = 'sound/voice/wraith/wraithstaminadrain.ogg'
+							volume = 55
+						if (5)
+							sound_effect = "sound/voice/creepywhisper_[rand(1, 3)].ogg"
+							volume = 55
+						if (6)
+							sound_effect = 'sound/effects/ghost.ogg'
+							volume = 55
+						if (7)
+							sound_effect = 'sound/effects/ghostbreath.ogg'
+							volume = 55
+						if (8)
+							sound_effect = 'sound/effects/ghostlaugh.ogg'
+							volume = 55
+						if (9)
+							sound_effect = 'sound/misc/headspiderability.ogg'
+							volume = 55
+						else
+							return
+					H.playsound_local(H.loc,sound_effect, volume, 1)
