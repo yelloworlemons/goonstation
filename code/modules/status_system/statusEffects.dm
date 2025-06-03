@@ -2926,9 +2926,10 @@
 		if (H.loc && istype(H.loc, /turf/space))
 			duration = INFINITE_STATUS
 
-		if (!isalive(H)) return
+		if (!isalive(H))
+			return
 
-		if ((duration >= 20 SECONDS))
+		if ((duration >= 20 SECONDS) && (duration <= 40 SECONDS) && (duration != INFINITE_STATUS))
 			if(probmult(13))
 				switch (rand(1,5))
 					if (1)
@@ -2945,7 +2946,7 @@
 					if (5)
 						boutput(H, SPAN_ALERT(pick("You feel something brush against your leg!", "Something just brushed against your leg!")))
 						H.emote("twitch_v")
-		if ((duration >= 40 SECONDS))
+		if ((duration >= 40 SECONDS) && (duration <= 60 SECONDS))
 			if(probmult(12))
 				switch (rand(1,3))
 					if (1)
@@ -2958,7 +2959,7 @@
 						H.visible_message(SPAN_ALERT("[H] flails around wildly, trying to get some invisible things off [himself_or_herself(H)]."), SPAN_ALERT("You flail around wildly trying to defend yourself from the shadows!"))
 						H.emote("scream")
 						H.setStatus("stunned", 2 SECONDS)
-		if ((duration >= 60 SECONDS))
+		if ((duration >= 60 SECONDS) && (duration <= 90 SECONDS))
 			SPAWN(1 SECOND)
 				H.playsound_local(H, "sound/effects/heartbeat.ogg", 50)
 			H.setStatus("nyctohallucination", 30 SECONDS)
@@ -2979,7 +2980,7 @@
 						H.visible_message(SPAN_ALERT("[H] looks terrified!"), SPAN_ALERT("Your body refuses to move!"))
 						H.emote(pick("pale", "tremble", "shake"))
 						H.setStatus("stunned", 5 SECONDS)
-		if ((duration >= 90 SECONDS))
+		if ((duration >= 90 SECONDS) && (duration != INFINITE_STATUS))
 			SPAWN(5 DECI SECONDS)
 				H.playsound_local(H, "sound/effects/heartbeat.ogg", 70)
 			H.setStatus("nyctohallucination", 30 SECONDS)
@@ -3001,7 +3002,7 @@
 						H.setStatus("resting", INFINITE_STATUS)
 					if (5)
 						H.visible_message(SPAN_ALERT("[H] begins to hyperventilate!"), SPAN_ALERT("You can't control your breathing!"))
-						H.losebreath += 2
+						H.losebreath += 10
 						H.playsound_local(H, "sound/effects/hyperventstethoscope.ogg", 50)
 
 
@@ -3019,6 +3020,20 @@
 	var/illusion_icon_state = null
 	var/volume = null
 	var/range = 6
+	var/static/list/nycto_sounds = list(
+		new /datum/hallucinated_sound("sound/voice/wraith/wraithraise[rand(1, 2)].ogg", min_count = 0, max_count = 2, delay = 0.6 SECONDS),
+		new /datum/hallucinated_sound("sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg", min_count = 0, max_count = 2, delay = 0.4 SECONDS),
+		new /datum/hallucinated_sound("sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg", min_count = 0, max_count = 2, delay = 0.8 SECONDS),
+		new /datum/hallucinated_sound('sound/misc/hastur/growl.ogg', min_count = 0, max_count = 1, delay = 0.5 SECONDS),
+		new /datum/hallucinated_sound('sound/voice/wraith/wraithstaminadrain.ogg', min_count = 0, max_count = 3, delay = 0.4 SECONDS),
+		new /datum/hallucinated_sound("sound/voice/creepywhisper_[rand(1, 3)].ogg", min_count = 0, max_count = 3, delay = 0.3 SECONDS),
+		new /datum/hallucinated_sound('sound/effects/ghost.ogg', min_count = 0, max_count = 4, delay = 0.9 SECONDS),
+		new /datum/hallucinated_sound('sound/effects/ghostbreath.ogg', pitch = 0.5),
+		new /datum/hallucinated_sound('sound/effects/ghostlaugh.ogg', min_count = 0, max_count = 1, delay = 1 SECOND, pitch = 0.6),
+		new /datum/hallucinated_sound('sound/effects/ghostlaugh.ogg', min_count = 0, max_count = 1, delay = 1 SECOND,),
+		new /datum/hallucinated_sound('sound/misc/headspiderability.ogg', min_count = 0, max_count = 1, delay = 0.5 SECOND,),
+		new /datum/hallucinated_sound('sound/effects/ghostlaugh.ogg', min_count = 0, max_count = 1, delay = 1 SECOND,),
+	)
 
 	onAdd(optional=null)
 		. = ..()
@@ -3039,89 +3054,60 @@
 			return
 		if (probmult(5))
 			switch (rand(1,2))
-				if (1) // Image based illusion
-					var/turf/owner_turf = get_turf(owner)
-					if (!owner_turf) return
-					var/list/turfs = block(locate(max(owner_turf.x - range, 0), max(owner_turf.y - range, 0), owner_turf.z), locate(min(owner_turf.x + range, world.maxx), min(owner_turf.y + range, world.maxy), owner_turf.z))
-					var/list/floor_turfs = list()
-					for (var/turf/simulated/floor/floor in turfs)
-						floor_turfs += floor
-					if (length(floor_turfs))
-						var/turf/F = pick(floor_turfs)
-						if (F.RL_GetBrightness() < 0.2)
+				if(1)
+					H.AddComponent(/datum/component/hallucination/trippy_colors, timeout=10)
+				//if (1) // Image based illusion
+				//	var/turf/owner_turf = get_turf(owner)
+				//	if (!owner_turf) return
+				//	var/list/turfs = block(locate(max(owner_turf.x - range, 0), max(owner_turf.y - range, 0), owner_turf.z), locate(min(owner_turf.x + range, world.maxx), min(owner_turf.y + range, world.maxy), owner_turf.z))
+				//	var/list/floor_turfs = list()
+				//	for (var/turf/simulated/floor/floor in turfs)
+				//		floor_turfs += floor
+				//	if (length(floor_turfs))
+					//	var/turf/F = pick(floor_turfs)
+					//	if (F.RL_GetBrightness() < 0.2)
 
-							switch(rand(1,6))
-								if (1)
-									sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
-									illusion_icon = 'icons/mob/mob.dmi'
-									illusion_icon_state = "poltergeist-corp"
-									volume = 55
-								if (2)
-									sound_effect = 'sound/effects/ghostlaugh.ogg'
-									illusion_icon = 'icons/mob/critter/humanoid/shade.dmi'
-									illusion_icon_state = "shade"
-									volume = 55
-								if (3)
-									sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
-									illusion_icon = 'icons/mob/mob.dmi'
-									illusion_icon_state = "wraith"
-									volume = 55
-								if (4)
-									sound_effect = "sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg"
-									illusion_icon = 'icons/misc/critter.dmi'
-									illusion_icon_state = "aberration"
-									volume = 55
-								if (5)
-									sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
-									illusion_icon = 'icons/effects/wraitheffects.dmi'
-									illusion_icon_state = "evilaura"
-									volume = 55
-								if (6)
-									sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
-									illusion_icon = 'icons/effects/wraitheffects.dmi'
-									illusion_icon_state = "acursed"
-									volume = 55
-						else
-							return
-						var/image/illusionIcon = image(illusion_icon, F, null, EFFECTS_LAYER_UNDER_4)
-						illusionIcon.icon_state = illusion_icon_state
-						get_image_group(CLIENT_IMAGE_GROUP_ILLUSSION).add_image(illusionIcon)	//Put the image in a group so the illusion is shared
-						if (sound_effect != null)
-							H.playsound_local(H.loc,sound_effect, volume, 1)
-						sleep(4 SECONDS)
-						qdel(illusionIcon)
+						//	switch(rand(1,6))
+						//		if (1)
+						//			sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
+						//			illusion_icon = 'icons/mob/mob.dmi'
+						//			illusion_icon_state = "poltergeist-corp"
+						//			volume = 55
+						//		if (2)
+						//			sound_effect = 'sound/effects/ghostlaugh.ogg'
+						//			illusion_icon = 'icons/mob/critter/humanoid/shade.dmi'
+						//			illusion_icon_state = "shade"
+						//			volume = 55
+						//		if (3)
+						//			sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
+						//			illusion_icon = 'icons/mob/mob.dmi'
+						//			illusion_icon_state = "wraith"
+						//			volume = 55
+						//		if (4)
+						//			sound_effect = "sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg"
+						//			illusion_icon = 'icons/misc/critter.dmi'
+						//			illusion_icon_state = "aberration"
+						//			volume = 55
+						//		if (5)
+						//			sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
+						//			illusion_icon = 'icons/effects/wraitheffects.dmi'
+						//			illusion_icon_state = "evilaura"
+						//			volume = 55
+						//		if (6)
+						//			sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
+						//			illusion_icon = 'icons/effects/wraitheffects.dmi'
+						//			illusion_icon_state = "acursed"
+						//			volume = 55
+						//else
+						//	return
+						//var/image/illusionIcon = image(illusion_icon, F, null, EFFECTS_LAYER_UNDER_4)
+						//illusionIcon.icon_state = illusion_icon_state
+						//get_image_group(CLIENT_IMAGE_GROUP_ILLUSSION).add_image(illusionIcon)	//Put the image in a group so the illusion is shared
+						//if (sound_effect != null)
+						//	H.playsound_local(H.loc,sound_effect, volume, 1)
+						//sleep(4 SECONDS)
+						//qdel(illusionIcon)
 				if (2) //sound based
-					switch(rand(1,9))
-						if (1)
-							sound_effect = "sound/voice/wraith/wraithwhisper[rand(1, 3)].ogg"
-							volume = 55
-						if (2)
-							sound_effect = "sound/voice/wraith/wraithsoulsucc[rand(1, 2)].ogg"
-							volume = 55
-						if (3)
-							sound_effect = "sound/voice/wraith/wraithraise[rand(1, 2)].ogg"
-							volume = 55
-						if (3)
-							sound_effect = 'sound/misc/hastur/growl.ogg'
-							volume = 55
-						if (4)
-							sound_effect = 'sound/voice/wraith/wraithstaminadrain.ogg'
-							volume = 55
-						if (5)
-							sound_effect = "sound/voice/creepywhisper_[rand(1, 3)].ogg"
-							volume = 55
-						if (6)
-							sound_effect = 'sound/effects/ghost.ogg'
-							volume = 55
-						if (7)
-							sound_effect = 'sound/effects/ghostbreath.ogg'
-							volume = 55
-						if (8)
-							sound_effect = 'sound/effects/ghostlaugh.ogg'
-							volume = 55
-						if (9)
-							sound_effect = 'sound/misc/headspiderability.ogg'
-							volume = 55
-						else
-							return
-					H.playsound_local(H.loc,sound_effect, volume, 1)
+					H.AddComponent(/datum/component/hallucination/random_sound, timeout=15, sound_list=src.nycto_sounds, sound_prob=10)
+				else
+					return
